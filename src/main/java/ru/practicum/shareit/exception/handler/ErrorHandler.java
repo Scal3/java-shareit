@@ -55,4 +55,26 @@ public class ErrorHandler {
                 LocalDateTime.now()
         );
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler
+    public ErrorResponse handleError(BadRequestException e) {
+        return new ErrorResponse(
+                e.getCode(),
+                e.getError(),
+                e.getDescription(),
+                LocalDateTime.now()
+        );
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler
+    public ErrorResponse handleError(ForbiddenException e) {
+        return new ErrorResponse(
+                e.getCode(),
+                e.getError(),
+                e.getDescription(),
+                LocalDateTime.now()
+        );
+    }
 }
