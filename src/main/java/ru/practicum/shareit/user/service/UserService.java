@@ -1,94 +1,187 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.exceptionimp.ConflictException;
+import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 
+import org.hibernate.exception.ConstraintViolationException;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
-    private long id;
+    private final UserRepository userRepository;
 
-    private final Map<Long, User> inMemoryUsers;
+    private final ModelMapper modelMapper;
 
-    private final UserMapper mapper;
-
+    @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
-        return inMemoryUsers.values().stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+        try {
+            log.debug("Entering getAllUsers method");
+
+            List<User> users = userRepository.findAll();
+            log.debug("DB returned result");
+
+            List<UserDto> resultDtos =
+                    modelMapper.map(users, new TypeToken<List<UserDto>>() {}.getType());
+            log.debug("Mapping from List<User> to List<UserDto>: {}", resultDtos);
+            log.debug("Exiting getAllUsers method");
+
+            return resultDtos;
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting getAllUsers method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
+    @Transactional(readOnly = true)
     public UserDto getOneUserById(long id) {
-        User user = inMemoryUsers.get(id);
+        try {
+            log.debug("Entering getOneUserById method");
+            log.debug("Got {} value as id argument", id);
 
-        if (user == null) throw new NotFoundException("User with id " + id + " is not found");
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("User with id " + id + " is not found"));
+            log.debug("User was found");
 
-        return mapper.toDto(user);
+            UserDto userDto = modelMapper.map(user, UserDto.class);
+            log.debug("Mapping from User to UserDto: {}", userDto);
+            log.debug("Exiting getOneUserById method");
+
+            return userDto;
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting getOneUserById method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting getOneUserById method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
+    @Transactional
     public UserDto createUser(CreateUserDto createUserDto) {
-        if (isDuplicateUserEmail(createUserDto.getEmail()))
-            throw new ConflictException("User with email " + createUserDto.getEmail() + " already exists");
+        try {
+            log.debug("Entering createUser method");
+            log.debug("Got {} value as CreateUserDto argument", createUserDto);
 
-        UserDto userDto = new UserDto();
-        userDto.setId(++id);
-        userDto.setName(createUserDto.getName());
-        userDto.setEmail(createUserDto.getEmail());
+            User userEntity = modelMapper.map(createUserDto, User.class);
+            log.debug("Mapping from CreateUserDto to User entity {}", userEntity);
 
-        inMemoryUsers.put(id, mapper.fromDto(userDto));
+            User savedUser = userRepository.save(userEntity);
+            UserDto userDtoResult = modelMapper.map(savedUser, UserDto.class);
+            log.debug("Mapping from User entity to UserDto {}", userDtoResult);
+            log.debug("User entity was saved to DB");
+            log.debug("Exiting createUser method");
 
-        return userDto;
+            return userDtoResult;
+        } catch (DataIntegrityViolationException | ConstraintViolationException exc) {
+            log.warn("Error has occurred {}", exc.getMessage());
+            log.debug("Exiting createUser method");
+
+            throw new ConflictException(exc.getMessage());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting createUser method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
+    @Transactional
     public UserDto updateUser(UpdateUserDto dto) {
-        User userForUpdate = inMemoryUsers.get(dto.getId());
+        try {
+            log.debug("Entering updateUser method");
+            log.debug("Got {} value as UpdateUserDto argument", dto);
 
-        if (userForUpdate == null)
-            throw new NotFoundException("User with id " + dto.getId() + " is not found");
+            User userEntity = userRepository.findById(dto.getId())
+                    .orElseThrow(() ->
+                            new NotFoundException("User with id " + dto.getId() + " is not found"));
+            log.debug("User was found");
 
-        if (!userForUpdate.getEmail().equals(dto.getEmail()) && isDuplicateUserEmail(dto.getEmail()))
-            throw new ConflictException("User with email " + dto.getEmail() + " already exists");
+            String newName = dto.getName() != null
+                    ? dto.getName()
+                    : userEntity.getName();
 
-        String newName = dto.getName() != null
-                ? dto.getName()
-                : userForUpdate.getName();
+            String newEmail = dto.getEmail() != null
+                    ? dto.getEmail()
+                    : userEntity.getEmail();
 
-        String newEmail = dto.getEmail() != null
-                ? dto.getEmail()
-                : userForUpdate.getEmail();
+            userEntity.setName(newName);
+            userEntity.setEmail(newEmail);
 
-        userForUpdate.setName(newName);
-        userForUpdate.setEmail(newEmail);
-        inMemoryUsers.replace(dto.getId(), userForUpdate);
+            User updatedUser = userRepository.save(userEntity);
+            UserDto userDtoResult = modelMapper.map(updatedUser, UserDto.class);
+            log.debug("Mapping from User entity to UserDto {}", userDtoResult);
+            log.debug("User entity was updated");
+            log.debug("Exiting updateUser method");
 
-        return mapper.toDto(userForUpdate);
+            return userDtoResult;
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting updateUser method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (DataIntegrityViolationException | ConstraintViolationException exc) {
+            log.warn("Error has occurred {}", exc.getMessage());
+            log.debug("Exiting updateUser method");
+
+            throw new ConflictException(exc.getMessage());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting updateUser method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
+    @Transactional
     public void deleteUser(long id) {
-        if (!inMemoryUsers.containsKey(id))
-            throw new NotFoundException("User with id " + id + " is not found");
+        try {
+            log.debug("Entering deleteUser method");
+            log.debug("Got {} value as id argument", id);
 
-        inMemoryUsers.remove(id);
-    }
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("User with id " + id + " is not found"));
+            log.debug("User was found");
 
-    private boolean isDuplicateUserEmail(String email) {
-        Optional<User> duplicateEmailUser = inMemoryUsers.values().stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst();
+            userRepository.delete(user);
+            log.debug("User entity was deleted");
+            log.debug("Exiting deleteUser method");
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting deleteUser method");
 
-        return duplicateEmailUser.isPresent();
+            throw new NotFoundException(exc.getDescription());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting deleteUser method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 }

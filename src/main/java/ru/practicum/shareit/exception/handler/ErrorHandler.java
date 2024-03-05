@@ -1,5 +1,6 @@
 package ru.practicum.shareit.exception.handler;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import ru.practicum.shareit.exception.exceptionimp.*;
 import ru.practicum.shareit.exception.response.ErrorResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,6 +29,17 @@ public class ErrorHandler {
     public ErrorResponse handleError(ConstraintViolationException e) {
         return new ErrorResponse(
                 400,
+                null,
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler
+    public ErrorResponse handleError(DataIntegrityViolationException e) {
+        return new ErrorResponse(
+                409,
                 null,
                 e.getMessage(),
                 LocalDateTime.now()
