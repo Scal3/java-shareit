@@ -17,6 +17,7 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<model.mapper.version>3.1.1</model.mapper.version>
 	</properties>
 
 	<dependencies>
@@ -63,6 +64,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.modelmapper</groupId>
+			<artifactId>modelmapper</artifactId>
+			<version>${model.mapper.version}</version>
 		</dependency>
 	</dependencies>
 
