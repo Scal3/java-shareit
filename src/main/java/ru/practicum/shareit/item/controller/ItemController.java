@@ -5,9 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -25,7 +28,7 @@ public class ItemController {
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto createItem(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @RequestBody ItemDto dto
+            @RequestBody @Valid CreateItemDto dto
     ) {
         return itemService.createItem(userId, dto);
     }
@@ -38,11 +41,12 @@ public class ItemController {
     public ItemDto updateItem(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable @Positive long itemId,
-            @RequestBody ItemDto dto
+            @RequestBody @Valid UpdateItemDto dto
     ) {
-        dto.setId(itemId);
+        dto.setUserId(userId);
+        dto.setItemId(itemId);
 
-        return itemService.updateItem(userId, dto);
+        return itemService.updateItem(dto);
     }
 
     @GetMapping(

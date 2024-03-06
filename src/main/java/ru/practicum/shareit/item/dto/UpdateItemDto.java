@@ -3,13 +3,15 @@ package ru.practicum.shareit.item.dto;
 import lombok.Data;
 
 @Data
-public class ItemDto {
+public class UpdateItemDto {
 
-    private long id;
+    private Long userId;
+
+    private Long itemId;
 
     private String name;
 
     private String description;
 
-    private boolean available;
+    private Boolean available;
 }
