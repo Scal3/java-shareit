@@ -12,6 +12,7 @@ import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.exceptionimp.BadRequestException;
+import ru.practicum.shareit.exception.exceptionimp.ForbiddenException;
 import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -93,9 +94,55 @@ public class BookingService {
         }
     }
 
-    public BookingDto approveBooking(long ownerId, long bookingId, boolean isApproved) {
+    @Transactional
+    public BookingDto approveBooking(long userId, long bookingId, boolean approved) {
+        try {
+            log.debug("Entering approveBooking method");
+            log.debug("Got {} value as userId, {} value as bookingId and {} value as approved",
+                    userId, bookingId, approved);
 
-        return null;
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new NotFoundException("Item with id " + userId + " is not found"));
+            log.debug("User was found");
+
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() ->
+                            new NotFoundException("Booking with id " + bookingId + " is not found"));
+
+            if (!booking.getItem().getOwner().equals(user)) {
+                throw new ForbiddenException("Only owner can approve its items");
+            }
+
+            BookingStatus status = approved
+                    ? BookingStatus.APPROVED
+                    : BookingStatus.REJECTED;
+            booking.setStatus(status);
+
+            Booking updatedBooking = bookingRepository.save(booking);
+            BookingDto bookingDto = modelMapper.map(updatedBooking, BookingDto.class);
+            log.debug("BookingStatus was changed to {}", status);
+            log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+            log.debug("Exiting approveBooking method");
+
+            return bookingDto;
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting approveBooking method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (ForbiddenException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting approveBooking method");
+
+            throw new ForbiddenException(exc.getDescription());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting approveBooking method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
     public BookingDto getBookingById(long userId, long bookingId) {
