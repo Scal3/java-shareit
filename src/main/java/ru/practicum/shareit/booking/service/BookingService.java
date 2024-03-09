@@ -145,9 +145,47 @@ public class BookingService {
         }
     }
 
+    @Transactional(readOnly = true)
     public BookingDto getBookingById(long userId, long bookingId) {
+        try {
+            log.debug("Entering getBookingById method");
+            log.debug("Got {} value as userId and {} value as bookingId", userId, bookingId);
 
-        return null;
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new NotFoundException("Item with id " + userId + " is not found"));
+            log.debug("User was found");
+
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() ->
+                            new NotFoundException("Booking with id " + bookingId + " is not found"));
+
+            if (!booking.getUser().equals(user) && !booking.getItem().getOwner().equals(user)) {
+                throw new ForbiddenException("You are not allowed to watch this");
+            }
+
+            BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
+            log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+            log.debug("Exiting getBookingById method");
+
+            return bookingDto;
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting getBookingById method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (ForbiddenException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting getBookingById method");
+
+            throw new ForbiddenException(exc.getDescription());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting getBookingById method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
     public List<BookingDto> getAllUserBooking(long userId, BookingSearchState state) {
