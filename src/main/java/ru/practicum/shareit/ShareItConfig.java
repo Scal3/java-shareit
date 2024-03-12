@@ -23,6 +23,7 @@ public class ShareItConfig {
                 m -> {
                     m.map(CreateBookingDto::getStart, Booking::setBookingDateStart);
                     m.map(CreateBookingDto::getEnd, Booking::setBookingDateEnd);
+                    m.skip(Booking::setId);
                 }
         );
 

@@ -25,7 +25,7 @@ public class Booking {
     @Column(name = "booking_date_end", nullable = false)
     private LocalDateTime bookingDateEnd;
 
-    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)

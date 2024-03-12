@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -12,7 +13,6 @@ import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.exceptionimp.BadRequestException;
-import ru.practicum.shareit.exception.exceptionimp.ForbiddenException;
 import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -20,6 +20,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -47,7 +48,7 @@ public class BookingService {
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() ->
-                            new NotFoundException("Item with id " + userId + " is not found"));
+                            new NotFoundException("User with id " + userId + " is not found"));
             log.debug("User was found");
 
             Item item = itemRepository.findById(dto.getItemId())
@@ -56,12 +57,12 @@ public class BookingService {
                     );
             log.debug("Item was found");
 
-            if (item.getOwner().equals(user) || !item.isAvailable()) {
-                String message = item.getOwner().equals(user)
-                        ? "Owner can't create booking for its own item"
-                        : "Item is unavailable";
+            if (item.getOwner().equals(user)) {
+                throw new NotFoundException("Owner can't create booking for its own item");
+            }
 
-                throw new BadRequestException(message);
+            if (!item.isAvailable()) {
+                throw new BadRequestException("Item is unavailable");
             }
 
             Booking booking = modelMapper.map(dto, Booking.class);
@@ -103,7 +104,7 @@ public class BookingService {
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() ->
-                            new NotFoundException("Item with id " + userId + " is not found"));
+                            new NotFoundException("User with id " + userId + " is not found"));
             log.debug("User was found");
 
             Booking booking = bookingRepository.findById(bookingId)
@@ -111,7 +112,11 @@ public class BookingService {
                             new NotFoundException("Booking with id " + bookingId + " is not found"));
 
             if (!booking.getItem().getOwner().equals(user)) {
-                throw new ForbiddenException("Only owner can approve its items");
+                throw new NotFoundException("Not found");
+            }
+
+            if (booking.getStatus().equals(BookingStatus.APPROVED)) {
+                throw new BadRequestException("Can not change status after post has been approved");
             }
 
             BookingStatus status = approved
@@ -131,11 +136,11 @@ public class BookingService {
             log.debug("Exiting approveBooking method");
 
             throw new NotFoundException(exc.getDescription());
-        } catch (ForbiddenException exc) {
+        } catch (BadRequestException exc) {
             log.warn("Error has occurred {}", exc.getDescription());
             log.debug("Exiting approveBooking method");
 
-            throw new ForbiddenException(exc.getDescription());
+            throw new BadRequestException(exc.getDescription());
         } catch (Throwable throwable) {
             log.warn("An unexpected exception has occurred " + throwable.getMessage());
             log.debug("Exiting approveBooking method");
@@ -153,7 +158,7 @@ public class BookingService {
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() ->
-                            new NotFoundException("Item with id " + userId + " is not found"));
+                            new NotFoundException("User with id " + userId + " is not found"));
             log.debug("User was found");
 
             Booking booking = bookingRepository.findById(bookingId)
@@ -161,7 +166,7 @@ public class BookingService {
                             new NotFoundException("Booking with id " + bookingId + " is not found"));
 
             if (!booking.getUser().equals(user) && !booking.getItem().getOwner().equals(user)) {
-                throw new ForbiddenException("You are not allowed to watch this");
+                throw new NotFoundException("Not found");
             }
 
             BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
@@ -174,11 +179,6 @@ public class BookingService {
             log.debug("Exiting getBookingById method");
 
             throw new NotFoundException(exc.getDescription());
-        } catch (ForbiddenException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting getBookingById method");
-
-            throw new ForbiddenException(exc.getDescription());
         } catch (Throwable throwable) {
             log.warn("An unexpected exception has occurred " + throwable.getMessage());
             log.debug("Exiting getBookingById method");
@@ -188,13 +188,151 @@ public class BookingService {
         }
     }
 
-    public List<BookingDto> getAllUserBooking(long userId, BookingSearchState state) {
+    @Transactional(readOnly = true)
+    public List<BookingDto> getAllUserBooking(long userId, String state) {
+        try {
+            log.debug("Entering getAllUserBooking method");
+            log.debug("Got {} value as userId and {} value as BookingSearchState", userId, state);
 
-        return null;
+            BookingSearchState searchState = BookingSearchState.valueOf(state);
+
+            userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found"));
+            log.debug("User was found");
+
+            List<Booking> bookings;
+
+            switch (searchState) {
+                case PAST:
+                    bookings = bookingRepository
+                            .findAllByUserIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
+                                    userId, LocalDateTime.now()
+                            );
+                    break;
+                case FUTURE:
+                    bookings = bookingRepository
+                            .findAllByUserIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
+                                    userId, LocalDateTime.now()
+                            );
+                    break;
+                case CURRENT:
+                    bookings = bookingRepository
+                            .findAllByUserIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
+                                    userId, LocalDateTime.now(), LocalDateTime.now()
+                            );
+                    break;
+                case WAITING:
+                    bookings = bookingRepository
+                            .findAllByUserIdAndStatusOrderByBookingDateEndDesc(
+                                    userId, BookingStatus.WAITING
+                            );
+                    break;
+                case REJECTED:
+                    bookings = bookingRepository
+                            .findAllByUserIdAndStatusOrderByBookingDateEndDesc(
+                                    userId, BookingStatus.REJECTED
+                            );
+                    break;
+                default:
+                    bookings = bookingRepository.findAllByUserIdOrderByBookingDateEndDesc(userId);
+            }
+
+            List<BookingDto> bookingDtos = modelMapper
+                    .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
+            log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
+            log.debug("Exiting getAllUserBooking method");
+
+            return bookingDtos;
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting getAllUserBooking method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (IllegalArgumentException exc) {
+            log.warn("Error has occurred {}", exc.getMessage());
+            log.debug("Exiting getAllUserBooking method");
+
+            throw new BadRequestException("Unknown state: " + state);
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting getAllUserBooking method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
-    public List<BookingDto> getAllOwnerBooking(long userId, BookingSearchState state) {
+    @Transactional(readOnly = true)
+    public List<BookingDto> getAllOwnerBooking(long ownerId, String state) {
+        try {
+            log.debug("Entering getAllOwnerBooking method");
+            log.debug("Got {} value as ownerId and {} value as BookingSearchState", ownerId, state);
 
-        return null;
+            BookingSearchState searchState = BookingSearchState.valueOf(state);
+
+            userRepository.findById(ownerId)
+                    .orElseThrow(() -> new NotFoundException("User with id " + ownerId + " is not found"));
+            log.debug("User was found");
+
+            List<Booking> bookings;
+
+            switch (searchState) {
+                case PAST:
+                    bookings = bookingRepository
+                            .findAllByItemOwnerIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
+                                    ownerId, LocalDateTime.now()
+                            );
+                    break;
+                case FUTURE:
+                    bookings = bookingRepository
+                            .findAllByItemOwnerIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
+                                    ownerId, LocalDateTime.now()
+                            );
+                    break;
+                case CURRENT:
+                    bookings = bookingRepository
+                            .findAllByItemOwnerIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
+                                    ownerId, LocalDateTime.now(), LocalDateTime.now()
+                            );
+                    break;
+                case WAITING:
+                    bookings = bookingRepository
+                            .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
+                                    ownerId, BookingStatus.WAITING
+                            );
+                    break;
+                case REJECTED:
+                    bookings = bookingRepository
+                            .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
+                                    ownerId, BookingStatus.REJECTED
+                            );
+                    break;
+                default:
+                    bookings = bookingRepository.findAllByItemOwnerIdOrderByBookingDateEndDesc(ownerId);
+            }
+
+            List<BookingDto> bookingDtos = modelMapper
+                    .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
+            log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
+            log.debug("Exiting getAllOwnerBooking method");
+
+            return bookingDtos;
+        } catch (IllegalArgumentException exc) {
+            log.warn("Error has occurred {}", exc.getMessage());
+            log.debug("Exiting getAllOwnerBooking method");
+
+            throw new BadRequestException("Unknown state: " + state);
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting getAllOwnerBooking method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting getAllOwnerBooking method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 }
