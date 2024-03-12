@@ -18,9 +18,8 @@ public class ErrorHandler {
     public ErrorResponse handleError(NotFoundException e) {
         return new ErrorResponse(
                 e.getCode(),
-                e.getError(),
                 e.getDescription(),
-                e.getTime()
+                LocalDateTime.now()
         );
     }
 
@@ -29,7 +28,6 @@ public class ErrorHandler {
     public ErrorResponse handleError(ConstraintViolationException e) {
         return new ErrorResponse(
                 400,
-                null,
                 e.getMessage(),
                 LocalDateTime.now()
         );
@@ -40,7 +38,6 @@ public class ErrorHandler {
     public ErrorResponse handleError(DataIntegrityViolationException e) {
         return new ErrorResponse(
                 409,
-                null,
                 e.getMessage(),
                 LocalDateTime.now()
         );
@@ -51,7 +48,6 @@ public class ErrorHandler {
     public ErrorResponse handleError(InternalServerException e) {
         return new ErrorResponse(
                 e.getCode(),
-                e.getError(),
                 e.getDescription(),
                 LocalDateTime.now()
         );
@@ -62,7 +58,6 @@ public class ErrorHandler {
     public ErrorResponse handleError(ConflictException e) {
         return new ErrorResponse(
                 e.getCode(),
-                e.getError(),
                 e.getDescription(),
                 LocalDateTime.now()
         );
@@ -73,7 +68,6 @@ public class ErrorHandler {
     public ErrorResponse handleError(BadRequestException e) {
         return new ErrorResponse(
                 e.getCode(),
-                e.getError(),
                 e.getDescription(),
                 LocalDateTime.now()
         );
@@ -84,7 +78,6 @@ public class ErrorHandler {
     public ErrorResponse handleError(ForbiddenException e) {
         return new ErrorResponse(
                 e.getCode(),
-                e.getError(),
                 e.getDescription(),
                 LocalDateTime.now()
         );
