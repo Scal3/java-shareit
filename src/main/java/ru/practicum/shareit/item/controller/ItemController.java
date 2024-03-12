@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -53,8 +54,11 @@ public class ItemController {
             value = "/{itemId}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ItemDto getOneItemById(@PathVariable @Positive long itemId) {
-        return itemService.getOneItemById(itemId);
+    public ItemDtoWithBooking getOneItemById(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @PathVariable @Positive long itemId
+    ) {
+        return itemService.getOneItemById(userId, itemId);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

@@ -11,6 +11,7 @@ import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -130,18 +131,24 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemDto getOneItemById(long id) {
+    public ItemDtoWithBooking getOneItemById(long userId, long itemId) {
         try {
             log.debug("Entering getOneItemById method");
-            log.debug("Got {} value as id argument", id);
+            log.debug("Got {} value as userId and {} value as itemId", userId, itemId);
 
-            Item item = itemRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Item with id " + id + " is not found"));
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(
+                            () -> new NotFoundException("Item with id " + itemId + " is not found"));
             log.debug("Item was found");
 
-            ItemDto itemDto = modelMapper.map(item, ItemDto.class);
+            ItemDtoWithBooking itemDto = modelMapper.map(item, ItemDtoWithBooking.class);
+            log.debug("Mapping from Item to ItemDtoWithBooking: {}", itemDto);
 
-            log.debug("Mapping from Item to ItemDto: {}", itemDto);
+            if (item.getOwner().getId() != userId) {
+                itemDto.setLastBooking(null);
+                itemDto.setNextBooking(null);
+            }
+
             log.debug("Exiting getOneItemById method");
 
             return itemDto;
