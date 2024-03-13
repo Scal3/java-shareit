@@ -9,8 +9,11 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -105,6 +108,21 @@ public class ShareItConfig {
         itemItemDtoWithBookingTypeMap.addMappings(
                 m -> m.using(nextBookingConverter)
                         .map(Item::getBookings, ItemDtoWithBooking::setNextBooking)
+        );
+
+        TypeMap<Comment, CommentDto> commentCommentDtoTypeMap =
+                mapper.createTypeMap(Comment.class, CommentDto.class);
+
+        Converter<User, String> userStringConverter =
+                context -> {
+                    if (context.getSource() == null) return null;
+
+                    return context.getSource().getName();
+                };
+
+        commentCommentDtoTypeMap.addMappings(
+                m -> m.using(userStringConverter)
+                        .map(Comment::getUser, CommentDto::setAuthorName)
         );
 
         return mapper;

@@ -41,4 +41,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @EntityGraph(attributePaths = {"user", "item"})
     List<Booking> findAllByItemOwnerIdAndBookingDateStartAfterOrderByBookingDateEndDesc(long ownerId, LocalDateTime currentDate);
+
+    List<Booking> findAllByUserIdAndItemIdAndStatusAndBookingDateEndBefore(long userId, long itemId, BookingStatus status, LocalDateTime dateTime);
 }

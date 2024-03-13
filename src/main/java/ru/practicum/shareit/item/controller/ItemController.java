@@ -5,10 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
@@ -73,5 +70,17 @@ public class ItemController {
     @ResponseStatus(HttpStatus.OK)
     public List<ItemDto> getAvailableItemsBySearchString(@RequestParam String text) {
         return itemService.getAvailableItemsBySearchString(text);
+    }
+
+    @PostMapping(
+            value = "/{itemId}/comment",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public CommentDto createComment(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @PathVariable @Positive long itemId,
+            @RequestBody @Valid CreateCommentDto dto
+    ) {
+        return itemService.createComment(userId, itemId, dto);
     }
 }

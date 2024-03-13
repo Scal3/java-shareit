@@ -6,19 +6,23 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.enums.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.exceptionimp.BadRequestException;
 import ru.practicum.shareit.exception.exceptionimp.ForbiddenException;
 import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
-import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,6 +32,12 @@ import java.util.List;
 public class ItemService {
 
     private final ItemRepository itemRepository;
+
+    private final CommentRepository commentRepository;
+
+    private final UserRepository userRepository;
+
+    private final BookingRepository bookingRepository;
 
     private final ModelMapper modelMapper;
 
@@ -208,6 +218,64 @@ public class ItemService {
         } catch (Throwable throwable) {
             log.warn("An unexpected exception has occurred " + throwable.getMessage());
             log.debug("Exiting getAvailableItemsBySearchString method");
+            throwable.printStackTrace();
+
+            throw new InternalServerException("Something went wrong");
+        }
+    }
+
+    @Transactional
+    public CommentDto createComment(long userId, long itemId, CreateCommentDto dto) {
+        try {
+            log.debug("Entering createComment method");
+            log.debug("Got {} value as userId, {} value as itemId and {} value as CreateCommentDto",
+                    userId, itemId, dto);
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() ->
+                            new NotFoundException("User with id " + userId + " is not found"));
+            log.debug("User was found");
+
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(
+                            () -> new NotFoundException("Item with id " + itemId + " is not found"));
+            log.debug("Item was found");
+
+            bookingRepository.findAllByUserIdAndItemIdAndStatusAndBookingDateEndBefore(
+                            userId,
+                            itemId,
+                            BookingStatus.APPROVED,
+                            LocalDateTime.now()
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException("Booking does not exist"));
+            log.debug("Booking was found");
+
+            Comment comment = modelMapper.map(dto, Comment.class);
+            comment.setCreated(LocalDateTime.now());
+            comment.setUser(user);
+            comment.setItem(item);
+
+            Comment savedComment = commentRepository.save(comment);
+            CommentDto resultDto = modelMapper.map(savedComment, CommentDto.class);
+            log.debug("Mapping from Comment to CommentDto: {}", resultDto);
+            log.debug("Exiting createComment method");
+
+            return resultDto;
+        } catch (NotFoundException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting createComment method");
+
+            throw new NotFoundException(exc.getDescription());
+        } catch (BadRequestException exc) {
+            log.warn("Error has occurred {}", exc.getDescription());
+            log.debug("Exiting createComment method");
+
+            throw new BadRequestException(exc.getDescription());
+        } catch (Throwable throwable) {
+            log.warn("An unexpected exception has occurred " + throwable.getMessage());
+            log.debug("Exiting createComment method");
             throwable.printStackTrace();
 
             throw new InternalServerException("Something went wrong");
