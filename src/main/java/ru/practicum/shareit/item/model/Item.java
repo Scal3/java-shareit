@@ -34,5 +34,6 @@ public class Item {
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
     private List<Booking> bookings;
 
-//    private List<Review> reviews;
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
+    private List<Comment> comments;
 }
