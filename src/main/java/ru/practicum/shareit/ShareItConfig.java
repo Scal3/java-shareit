@@ -14,6 +14,7 @@ import ru.practicum.shareit.item.model.Item;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 @Configuration
@@ -48,7 +49,7 @@ public class ShareItConfig {
                 context -> {
                     if (context.getSource() == null || context.getSource().size() == 0) return null;
 
-                    Booking lastBooking = context.getSource().stream()
+                    Optional<Booking> lastBookingOptional = context.getSource().stream()
                             .filter(b -> b.getBookingDateEnd().isBefore(LocalDateTime.now()))
                             .min((b1, b2) -> {
                                 if (b2.getBookingDateEnd().isEqual(b1.getBookingDateEnd())) return 0;
@@ -58,9 +59,11 @@ public class ShareItConfig {
                                 } else {
                                     return -1;
                                 }
-                            })
-                            .orElseThrow(() -> new RuntimeException("lastBookingConverter problem"));
+                            });
 
+                    if (lastBookingOptional.isEmpty()) return null;
+
+                    Booking lastBooking = lastBookingOptional.get();
                     ShortBookingDto dto = new ShortBookingDto();
                     dto.setId(lastBooking.getId());
                     dto.setBookerId(lastBooking.getUser().getId());
@@ -72,7 +75,7 @@ public class ShareItConfig {
                 context -> {
                     if (context.getSource() == null || context.getSource().size() == 0) return null;
 
-                    Booking nextBooking = context.getSource().stream()
+                    Optional<Booking> nextBookingOptional = context.getSource().stream()
                             .filter(b -> b.getBookingDateStart().isAfter(LocalDateTime.now()))
                             .min((b1, b2) -> {
                                 if (b2.getBookingDateStart().isEqual(b1.getBookingDateStart())) return 0;
@@ -82,9 +85,11 @@ public class ShareItConfig {
                                 } else {
                                     return -1;
                                 }
-                            })
-                            .orElseThrow(() -> new RuntimeException("nextBookingConverter problem"));
+                            });
 
+                    if (nextBookingOptional.isEmpty()) return null;
+
+                    Booking nextBooking = nextBookingOptional.get();
                     ShortBookingDto dto = new ShortBookingDto();
                     dto.setId(nextBooking.getId());
                     dto.setBookerId(nextBooking.getUser().getId());

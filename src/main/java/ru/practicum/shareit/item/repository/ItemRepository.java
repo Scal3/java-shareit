@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,7 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
+    @EntityGraph(attributePaths = {"bookings"})
     List<Item> findAllByOwnerId(long userId);
 
     @Query(value = "SELECT * FROM items WHERE available = true AND (name ILIKE %:keyword% OR description ILIKE %:keyword%)", nativeQuery = true)

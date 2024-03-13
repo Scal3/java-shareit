@@ -63,7 +63,7 @@ public class ItemController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDto> getOwnersItems(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public List<ItemDtoWithBooking> getOwnersItems(@RequestHeader("X-Sharer-User-Id") long userId) {
         return itemService.getOwnersItems(userId);
     }
 

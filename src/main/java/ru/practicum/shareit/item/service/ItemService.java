@@ -167,16 +167,16 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public List<ItemDto> getOwnersItems(long userId) {
+    public List<ItemDtoWithBooking> getOwnersItems(long userId) {
         try {
             log.debug("Entering getOwnersItems method");
             log.debug("Got {} value as userId argument", userId);
 
             List<Item> items = itemRepository.findAllByOwnerId(userId);
-            List<ItemDto> resultDtos =
-                    modelMapper.map(items, new TypeToken<List<ItemDto>>() {}.getType());
+            List<ItemDtoWithBooking> resultDtos =
+                    modelMapper.map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
             log.debug("DB returned result");
-            log.debug("Mapping from List<Item> to List<ItemDto> {}", resultDtos);
+            log.debug("Mapping from List<Item> to List<ItemDtoWithBooking> {}", resultDtos);
             log.debug("Exiting getOwnersItems method");
 
             return resultDtos;
