@@ -182,9 +182,11 @@ public class ItemService {
             log.debug("Entering getOwnersItems method");
             log.debug("Got {} value as userId argument", userId);
 
-            List<Item> items = itemRepository.findAllByOwnerId(userId);
-            List<ItemDtoWithBooking> resultDtos =
-                    modelMapper.map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
+            List<Item> items = itemRepository.findAllByOwnerIdWithComments(userId);
+            items = itemRepository.findAllByOwnerIdWithBookings(userId);
+
+            List<ItemDtoWithBooking> resultDtos = modelMapper
+                            .map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
             log.debug("DB returned result");
             log.debug("Mapping from List<Item> to List<ItemDtoWithBooking> {}", resultDtos);
             log.debug("Exiting getOwnersItems method");

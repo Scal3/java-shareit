@@ -3,6 +3,8 @@ package ru.practicum.shareit.item.dto;
 import lombok.Data;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
 
+import java.util.List;
+
 @Data
 public class ItemDtoWithBooking {
 
@@ -17,4 +19,6 @@ public class ItemDtoWithBooking {
     private ShortBookingDto lastBooking;
 
     private ShortBookingDto nextBooking;
+
+    private List<CommentDto> comments;
 }

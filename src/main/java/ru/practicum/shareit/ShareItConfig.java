@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
+import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
@@ -18,7 +19,6 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 
 @Configuration
 public class ShareItConfig {
@@ -53,11 +53,12 @@ public class ShareItConfig {
                     if (context.getSource() == null || context.getSource().size() == 0) return null;
 
                     Optional<Booking> lastBookingOptional = context.getSource().stream()
-                            .filter(b -> b.getBookingDateEnd().isBefore(LocalDateTime.now()))
+                            .filter(b -> b.getBookingDateStart().isBefore(LocalDateTime.now())
+                                    && !b.getStatus().equals(BookingStatus.REJECTED))
                             .min((b1, b2) -> {
-                                if (b2.getBookingDateEnd().isEqual(b1.getBookingDateEnd())) return 0;
+                                if (b1.getBookingDateStart().isEqual(b2.getBookingDateStart())) return 0;
 
-                                if (b2.getBookingDateEnd().isBefore(b1.getBookingDateEnd())) {
+                                if (b1.getBookingDateStart().isBefore(b2.getBookingDateStart())) {
                                     return 1;
                                 } else {
                                     return -1;
@@ -79,7 +80,8 @@ public class ShareItConfig {
                     if (context.getSource() == null || context.getSource().size() == 0) return null;
 
                     Optional<Booking> nextBookingOptional = context.getSource().stream()
-                            .filter(b -> b.getBookingDateStart().isAfter(LocalDateTime.now()))
+                            .filter(b -> b.getBookingDateStart().isAfter(LocalDateTime.now())
+                                    && !b.getStatus().equals(BookingStatus.REJECTED))
                             .min((b1, b2) -> {
                                 if (b2.getBookingDateStart().isEqual(b1.getBookingDateStart())) return 0;
 
