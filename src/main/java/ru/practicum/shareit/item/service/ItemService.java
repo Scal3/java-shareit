@@ -17,10 +17,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -41,20 +39,15 @@ public class ItemService {
 
     private final ModelMapper modelMapper;
 
-    private final UserService userService;
-
     @Transactional
     public ItemDto createItem(long userId, CreateItemDto dto) {
+        log.debug("Entering createItem method: userId = {}, CreateItemDto = {}", userId, dto);
+
+        User owner = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("User with id" + userId + "is not found"));
+        log.debug("User was found");
+
         try {
-            log.debug("Entering createItem method");
-            log.debug("Got {} value as CreateItemDto argument", dto);
-
-            UserDto userDto = userService.getOneUserById(userId);
-            log.debug("User was found");
-
-            User owner = modelMapper.map(userDto, User.class);
-            log.debug("Mapping from UserDto to User {}", owner);
-
             Item itemEntity = modelMapper.map(dto, Item.class);
             itemEntity.setOwner(owner);
             log.debug("Mapping from CreateItemDto to Item entity {}", itemEntity);
@@ -62,19 +55,11 @@ public class ItemService {
             Item savedItem = itemRepository.save(itemEntity);
             ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
             log.debug("Mapping from Item entity to ItemDto {}", itemDtoResult);
-            log.debug("Item entity was saved to DB");
             log.debug("Exiting createItem method");
 
             return itemDtoResult;
-        } catch (NotFoundException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting createItem method");
-
-            throw new NotFoundException(exc.getDescription());
-        } catch (Throwable throwable) {
-            log.warn("An unexpected exception has occurred " + throwable.getMessage());
-            log.debug("Exiting createItem method");
-            throwable.printStackTrace();
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
 
             throw new InternalServerException("Something went wrong");
         }
@@ -82,24 +67,21 @@ public class ItemService {
 
     @Transactional
     public ItemDto updateItem(UpdateItemDto dto) {
+        log.debug("Entering updateItem method: UpdateItemDto = {}", dto);
+
+        userRepository.findById(dto.getUserId()).orElseThrow(
+                () -> new NotFoundException("User with id" + dto.getUserId() + "is not found"));
+        log.debug("User was found");
+
+        Item itemEntityForUpdate = itemRepository.findById(dto.getItemId())
+                .orElseThrow(() ->
+                        new NotFoundException("Item with id " + dto.getItemId() + " is not found"));
+        log.debug("Item was found");
+
+        if (itemEntityForUpdate.getOwner().getId() != dto.getUserId())
+            throw new ForbiddenException("Only owner can update its items");
+
         try {
-            log.debug("Entering updateItem method");
-            log.debug("Got {} value as UpdateItemDto argument", dto);
-
-            UserDto userDto = userService.getOneUserById(dto.getUserId());
-            log.debug("User was found");
-
-            User owner = modelMapper.map(userDto, User.class);
-            log.debug("Mapping from UserDto to User {}", owner);
-
-            Item itemEntityForUpdate = itemRepository.findById(dto.getItemId())
-                    .orElseThrow(() ->
-                            new NotFoundException("Item with id " + dto.getItemId() + " is not found"));
-            log.debug("Item was found");
-
-            if (itemEntityForUpdate.getOwner().getId() != dto.getUserId())
-                throw new ForbiddenException("Only owner can update its items");
-
             String newName = dto.getName() != null
                     ? dto.getName()
                     : itemEntityForUpdate.getName();
@@ -117,24 +99,11 @@ public class ItemService {
             Item savedItem = itemRepository.save(itemEntityForUpdate);
             ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
             log.debug("Mapping from Item entity to ItemDto {}", itemDtoResult);
-            log.debug("Item entity was updated");
             log.debug("Exiting updateItem method");
 
             return itemDtoResult;
-        } catch (NotFoundException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting updateItem method");
-
-            throw new NotFoundException(exc.getDescription());
-        } catch (ForbiddenException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting updateItem method");
-
-            throw new ForbiddenException(exc.getDescription());
-        } catch (Throwable throwable) {
-            log.warn("An unexpected exception has occurred " + throwable.getMessage());
-            log.debug("Exiting updateItem method");
-            throwable.printStackTrace();
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
 
             throw new InternalServerException("Something went wrong");
         }
@@ -142,15 +111,14 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public ItemDtoWithBooking getOneItemById(long userId, long itemId) {
+        log.debug("Entering getOneItemById method: userId = {}, itemId = {}", userId, itemId);
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(
+                        () -> new NotFoundException("Item with id " + itemId + " is not found"));
+        log.debug("Item was found");
+
         try {
-            log.debug("Entering getOneItemById method");
-            log.debug("Got {} value as userId and {} value as itemId", userId, itemId);
-
-            Item item = itemRepository.findById(itemId)
-                    .orElseThrow(
-                            () -> new NotFoundException("Item with id " + itemId + " is not found"));
-            log.debug("Item was found");
-
             ItemDtoWithBooking itemDto = modelMapper.map(item, ItemDtoWithBooking.class);
             log.debug("Mapping from Item to ItemDtoWithBooking: {}", itemDto);
 
@@ -162,15 +130,8 @@ public class ItemService {
             log.debug("Exiting getOneItemById method");
 
             return itemDto;
-        } catch (NotFoundException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting getOneItemById method");
-
-            throw new NotFoundException(exc.getDescription());
-        } catch (Throwable throwable) {
-            log.warn("An unexpected exception has occurred " + throwable.getMessage());
-            log.debug("Exiting getOneItemById method");
-            throwable.printStackTrace();
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
 
             throw new InternalServerException("Something went wrong");
         }
@@ -179,23 +140,19 @@ public class ItemService {
     @Transactional(readOnly = true)
     public List<ItemDtoWithBooking> getOwnersItems(long userId) {
         try {
-            log.debug("Entering getOwnersItems method");
-            log.debug("Got {} value as userId argument", userId);
+            log.debug("Entering getOwnersItems method: userId = {}", userId);
 
             List<Item> items = itemRepository.findAllByOwnerIdWithComments(userId);
-            items = itemRepository.findAllByOwnerIdWithBookings(userId);
+            itemRepository.findAllByOwnerIdWithBookings(userId);
 
             List<ItemDtoWithBooking> resultDtos = modelMapper
                             .map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
-            log.debug("DB returned result");
             log.debug("Mapping from List<Item> to List<ItemDtoWithBooking> {}", resultDtos);
             log.debug("Exiting getOwnersItems method");
 
             return resultDtos;
-        } catch (Throwable throwable) {
-            log.warn("An unexpected exception has occurred " + throwable.getMessage());
-            log.debug("Exiting getOwnersItems method");
-            throwable.printStackTrace();
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
 
             throw new InternalServerException("Something went wrong");
         }
@@ -204,23 +161,20 @@ public class ItemService {
     @Transactional(readOnly = true)
     public List<ItemDto> getAvailableItemsBySearchString(String searchString) {
         try {
-            log.debug("Entering getAvailableItemsBySearchString method");
-            log.debug("Got {} value as searchString argument", searchString);
+            log.debug("Entering getAvailableItemsBySearchString method: searchString = {}",
+                    searchString);
 
             if (searchString.isBlank()) return Collections.emptyList();
 
             List<Item> items = itemRepository.findByAvailableAndKeyword(searchString);
             List<ItemDto> resultDtos =
                     modelMapper.map(items, new TypeToken<List<ItemDto>>() {}.getType());
-            log.debug("DB returned result");
             log.debug("Mapping from List<Item> to List<ItemDto> {}", resultDtos);
             log.debug("Exiting getAvailableItemsBySearchString method");
 
             return resultDtos;
-        } catch (Throwable throwable) {
-            log.warn("An unexpected exception has occurred " + throwable.getMessage());
-            log.debug("Exiting getAvailableItemsBySearchString method");
-            throwable.printStackTrace();
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
 
             throw new InternalServerException("Something went wrong");
         }
@@ -228,32 +182,31 @@ public class ItemService {
 
     @Transactional
     public CommentDto createComment(long userId, long itemId, CreateCommentDto dto) {
-        try {
-            log.debug("Entering createComment method");
-            log.debug("Got {} value as userId, {} value as itemId and {} value as CreateCommentDto",
+        log.debug("Entering createComment method: userId = {}, itemId = {}, CreateCommentDto = {}",
                     userId, itemId, dto);
 
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() ->
-                            new NotFoundException("User with id " + userId + " is not found"));
-            log.debug("User was found");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new NotFoundException("User with id " + userId + " is not found"));
+        log.debug("User was found");
 
-            Item item = itemRepository.findById(itemId)
-                    .orElseThrow(
-                            () -> new NotFoundException("Item with id " + itemId + " is not found"));
-            log.debug("Item was found");
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(
+                        () -> new NotFoundException("Item with id " + itemId + " is not found"));
+        log.debug("Item was found");
 
-            bookingRepository.findAllByUserIdAndItemIdAndStatusAndBookingDateEndBefore(
-                            userId,
-                            itemId,
-                            BookingStatus.APPROVED,
-                            LocalDateTime.now()
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new BadRequestException("Booking does not exist"));
-            log.debug("Booking was found");
+        bookingRepository.findAllByUserIdAndItemIdAndStatusAndBookingDateEndBefore(
+                        userId,
+                        itemId,
+                        BookingStatus.APPROVED,
+                        LocalDateTime.now()
+                )
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Booking does not exist"));
+        log.debug("Booking was found");
 
+        try {
             Comment comment = modelMapper.map(dto, Comment.class);
             comment.setCreated(LocalDateTime.now());
             comment.setUser(user);
@@ -265,20 +218,8 @@ public class ItemService {
             log.debug("Exiting createComment method");
 
             return resultDto;
-        } catch (NotFoundException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting createComment method");
-
-            throw new NotFoundException(exc.getDescription());
-        } catch (BadRequestException exc) {
-            log.warn("Error has occurred {}", exc.getDescription());
-            log.debug("Exiting createComment method");
-
-            throw new BadRequestException(exc.getDescription());
-        } catch (Throwable throwable) {
-            log.warn("An unexpected exception has occurred " + throwable.getMessage());
-            log.debug("Exiting createComment method");
-            throwable.printStackTrace();
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
 
             throw new InternalServerException("Something went wrong");
         }
