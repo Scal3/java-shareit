@@ -1,111 +1,227 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.enums.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.exceptionimp.BadRequestException;
 import ru.practicum.shareit.exception.exceptionimp.ForbiddenException;
+import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemService {
 
-    private long id;
+    private final ItemRepository itemRepository;
 
-    private final Map<Long, Item> inMemoryItems;
+    private final CommentRepository commentRepository;
 
-    private final ItemMapper itemMapper;
+    private final UserRepository userRepository;
 
-    private final UserMapper userMapper;
+    private final BookingRepository bookingRepository;
 
-    private final UserService userService;
+    private final ModelMapper modelMapper;
 
-    public ItemDto createItem(long userId, ItemDto dto) {
-        if (dto.getName() == null || dto.getName().isBlank()) {
-            throw new BadRequestException("name field is null or blank");
+    @Transactional
+    public ItemDto createItem(long userId, CreateItemDto dto) {
+        log.debug("Entering createItem method: userId = {}, CreateItemDto = {}", userId, dto);
+
+        User owner = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("User with id" + userId + "is not found"));
+        log.debug("User was found");
+
+        try {
+            Item itemEntity = modelMapper.map(dto, Item.class);
+            itemEntity.setOwner(owner);
+            log.debug("Mapping from CreateItemDto to Item entity {}", itemEntity);
+
+            Item savedItem = itemRepository.save(itemEntity);
+            ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
+            log.debug("Mapping from Item entity to ItemDto {}", itemDtoResult);
+            log.debug("Exiting createItem method");
+
+            return itemDtoResult;
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
+
+            throw new InternalServerException("Something went wrong");
         }
-
-        if (dto.getDescription() == null || dto.getDescription().isBlank()) {
-            throw new BadRequestException("description field is null or blank");
-        }
-
-        if (dto.getAvailable() == null) {
-            throw new BadRequestException("available field is null");
-        }
-
-        User owner = userMapper.fromDto(userService.getOneUserById(userId));
-        dto.setId(++id);
-        Item item = itemMapper.fromDto(dto);
-        item.setOwner(owner);
-
-        inMemoryItems.put(id, item);
-
-        return itemMapper.toDto(item);
     }
 
-    public ItemDto updateItem(long userId, ItemDto dto) {
-        Item itemForUpdate = inMemoryItems.get(dto.getId());
+    @Transactional
+    public ItemDto updateItem(UpdateItemDto dto) {
+        log.debug("Entering updateItem method: UpdateItemDto = {}", dto);
 
-        if (itemForUpdate == null)
-            throw new NotFoundException("Item with id " + dto.getId() + " is not found");
+        userRepository.findById(dto.getUserId()).orElseThrow(
+                () -> new NotFoundException("User with id" + dto.getUserId() + "is not found"));
+        log.debug("User was found");
 
-        if (itemForUpdate.getOwner().getId() != userId)
+        Item itemEntityForUpdate = itemRepository.findById(dto.getItemId())
+                .orElseThrow(() ->
+                        new NotFoundException("Item with id " + dto.getItemId() + " is not found"));
+        log.debug("Item was found");
+
+        if (itemEntityForUpdate.getOwner().getId() != dto.getUserId())
             throw new ForbiddenException("Only owner can update its items");
 
-        String newName = dto.getName() != null
-                ? dto.getName()
-                : itemForUpdate.getName();
-        String newDescription = dto.getDescription() != null
-                ? dto.getDescription()
-                : itemForUpdate.getDescription();
-        boolean newAvailable = dto.getAvailable() != null
-                ? dto.getAvailable()
-                : itemForUpdate.isAvailable();
+        try {
+            String newName = dto.getName() != null
+                    ? dto.getName()
+                    : itemEntityForUpdate.getName();
+            String newDescription = dto.getDescription() != null
+                    ? dto.getDescription()
+                    : itemEntityForUpdate.getDescription();
+            boolean newAvailable = dto.getAvailable() != null
+                    ? dto.getAvailable()
+                    : itemEntityForUpdate.isAvailable();
 
-        itemForUpdate.setName(newName);
-        itemForUpdate.setDescription(newDescription);
-        itemForUpdate.setAvailable(newAvailable);
-        inMemoryItems.replace(dto.getId(), itemForUpdate);
+            itemEntityForUpdate.setName(newName);
+            itemEntityForUpdate.setDescription(newDescription);
+            itemEntityForUpdate.setAvailable(newAvailable);
 
-        return itemMapper.toDto(itemForUpdate);
+            Item savedItem = itemRepository.save(itemEntityForUpdate);
+            ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
+            log.debug("Mapping from Item entity to ItemDto {}", itemDtoResult);
+            log.debug("Exiting updateItem method");
+
+            return itemDtoResult;
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
-    public ItemDto getOneItemById(long id) {
-        Item item = inMemoryItems.get(id);
+    @Transactional(readOnly = true)
+    public ItemDtoWithBooking getOneItemById(long userId, long itemId) {
+        log.debug("Entering getOneItemById method: userId = {}, itemId = {}", userId, itemId);
 
-        if (item == null)
-            throw new NotFoundException("Item with id " + id + " is not found");
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(
+                        () -> new NotFoundException("Item with id " + itemId + " is not found"));
+        log.debug("Item was found");
 
-        return itemMapper.toDto(item);
+        try {
+            ItemDtoWithBooking itemDto = modelMapper.map(item, ItemDtoWithBooking.class);
+            log.debug("Mapping from Item to ItemDtoWithBooking: {}", itemDto);
+
+            if (item.getOwner().getId() != userId) {
+                itemDto.setLastBooking(null);
+                itemDto.setNextBooking(null);
+            }
+
+            log.debug("Exiting getOneItemById method");
+
+            return itemDto;
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
-    public List<ItemDto> getOwnersItems(long userId) {
-        return inMemoryItems.values().stream()
-                .filter(item -> item.getOwner().getId() == userId)
-                .map(itemMapper::toDto)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<ItemDtoWithBooking> getOwnersItems(long userId) {
+        try {
+            log.debug("Entering getOwnersItems method: userId = {}", userId);
+
+            List<Item> items = itemRepository.findAllByOwnerIdWithComments(userId);
+            itemRepository.findAllByOwnerIdWithBookings(userId);
+
+            List<ItemDtoWithBooking> resultDtos = modelMapper
+                            .map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
+            log.debug("Mapping from List<Item> to List<ItemDtoWithBooking> {}", resultDtos);
+            log.debug("Exiting getOwnersItems method");
+
+            return resultDtos;
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 
+    @Transactional(readOnly = true)
     public List<ItemDto> getAvailableItemsBySearchString(String searchString) {
-        if (searchString.isBlank()) return Collections.emptyList();
+        try {
+            log.debug("Entering getAvailableItemsBySearchString method: searchString = {}",
+                    searchString);
 
-        return inMemoryItems.values().stream()
-                .filter(item ->
-                        (item.getName().toLowerCase().contains(searchString.toLowerCase())
-                                || item.getDescription().toLowerCase().contains(searchString.toLowerCase()))
-                                && item.isAvailable())
-                .map(itemMapper::toDto)
-                .collect(Collectors.toList());
+            if (searchString.isBlank()) return Collections.emptyList();
+
+            List<Item> items = itemRepository.findByAvailableAndKeyword(searchString);
+            List<ItemDto> resultDtos =
+                    modelMapper.map(items, new TypeToken<List<ItemDto>>() {}.getType());
+            log.debug("Mapping from List<Item> to List<ItemDto> {}", resultDtos);
+            log.debug("Exiting getAvailableItemsBySearchString method");
+
+            return resultDtos;
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
+
+            throw new InternalServerException("Something went wrong");
+        }
+    }
+
+    @Transactional
+    public CommentDto createComment(long userId, long itemId, CreateCommentDto dto) {
+        log.debug("Entering createComment method: userId = {}, itemId = {}, CreateCommentDto = {}",
+                    userId, itemId, dto);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new NotFoundException("User with id " + userId + " is not found"));
+        log.debug("User was found");
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(
+                        () -> new NotFoundException("Item with id " + itemId + " is not found"));
+        log.debug("Item was found");
+
+        bookingRepository.findAllByUserIdAndItemIdAndStatusAndBookingDateEndBefore(
+                        userId,
+                        itemId,
+                        BookingStatus.APPROVED,
+                        LocalDateTime.now()
+                )
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Booking does not exist"));
+        log.debug("Booking was found");
+
+        try {
+            Comment comment = modelMapper.map(dto, Comment.class);
+            comment.setCreated(LocalDateTime.now());
+            comment.setUser(user);
+            comment.setItem(item);
+
+            Comment savedComment = commentRepository.save(comment);
+            CommentDto resultDto = modelMapper.map(savedComment, CommentDto.class);
+            log.debug("Mapping from Comment to CommentDto: {}", resultDto);
+            log.debug("Exiting createComment method");
+
+            return resultDto;
+        } catch (Exception exc) {
+            log.error("An unexpected exception has occurred " + exc);
+
+            throw new InternalServerException("Something went wrong");
+        }
     }
 }
