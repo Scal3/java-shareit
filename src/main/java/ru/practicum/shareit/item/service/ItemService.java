@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.enums.BookingStatus;
@@ -149,12 +151,14 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public List<ItemDtoWithBooking> getOwnersItems(long userId) {
+    public List<ItemDtoWithBooking> getOwnersItems(long userId, int from, int size) {
         try {
-            log.debug("Entering getOwnersItems method: userId = {}", userId);
+            log.debug("Entering getOwnersItems method: userId = {}, from = {}, size = {}",
+                    userId, from, size);
 
-            List<Item> items = itemRepository.findAllByOwnerIdWithComments(userId);
-            itemRepository.findAllByOwnerIdWithBookings(userId);
+            Pageable pageable = PageRequest.of(from / size, size);
+            List<Item> items = itemRepository.findAllByOwnerIdWithComments(userId, pageable);
+            itemRepository.findAllByOwnerIdWithBookings(userId, pageable);
 
             List<ItemDtoWithBooking> resultDtos = modelMapper
                             .map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
@@ -170,14 +174,16 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public List<ItemDto> getAvailableItemsBySearchString(String searchString) {
+    public List<ItemDto> getAvailableItemsBySearchString(String searchString, int from, int size) {
         try {
-            log.debug("Entering getAvailableItemsBySearchString method: searchString = {}",
-                    searchString);
+            log.debug("Entering getAvailableItemsBySearchString method: " +
+                            "searchString = {}, from = {}, size = {}",
+                    searchString, from, size);
 
             if (searchString.isBlank()) return Collections.emptyList();
 
-            List<Item> items = itemRepository.findByAvailableAndKeyword(searchString);
+            Pageable pageable = PageRequest.of(from / size, size);
+            List<Item> items = itemRepository.findByAvailableAndKeyword(searchString, pageable);
             List<ItemDto> resultDtos =
                     modelMapper.map(items, new TypeToken<List<ItemDto>>() {}.getType());
             log.debug("Mapping from List<Item> to List<ItemDto> {}", resultDtos);

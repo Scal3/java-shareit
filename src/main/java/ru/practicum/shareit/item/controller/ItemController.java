@@ -73,8 +73,12 @@ public class ItemController {
             value = "/search",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDto> getAvailableItemsBySearchString(@RequestParam String text) {
-        return itemService.getAvailableItemsBySearchString(text);
+    public List<ItemDto> getAvailableItemsBySearchString(
+            @RequestParam String text,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(defaultValue = "15") @Positive int size
+    ) {
+        return itemService.getAvailableItemsBySearchString(text, from, size);
     }
 
     @PostMapping(
