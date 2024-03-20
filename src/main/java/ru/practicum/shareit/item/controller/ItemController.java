@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -60,8 +61,12 @@ public class ItemController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDtoWithBooking> getOwnersItems(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.getOwnersItems(userId);
+    public List<ItemDtoWithBooking> getOwnersItems(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(defaultValue = "15") @Positive int size
+    ) {
+        return itemService.getOwnersItems(userId, from, size);
     }
 
     @GetMapping(

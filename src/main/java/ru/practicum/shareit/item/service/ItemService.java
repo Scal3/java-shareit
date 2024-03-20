@@ -17,6 +17,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -37,6 +39,8 @@ public class ItemService {
 
     private final BookingRepository bookingRepository;
 
+    private final ItemRequestRepository itemRequestRepository;
+
     private final ModelMapper modelMapper;
 
     @Transactional
@@ -45,12 +49,19 @@ public class ItemService {
 
         User owner = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("User with id" + userId + "is not found"));
-        log.debug("User was found");
 
         try {
             Item itemEntity = modelMapper.map(dto, Item.class);
             itemEntity.setOwner(owner);
-            log.debug("Mapping from CreateItemDto to Item entity {}", itemEntity);
+
+            if (dto.getRequestId() != null) {
+                ItemRequest request = itemRequestRepository.findById(dto.getRequestId())
+                        .orElseThrow(() -> new NotFoundException(
+                                "Request with id" + dto.getRequestId() + "is not found")
+                );
+
+                itemEntity.setRequest(request);
+            }
 
             Item savedItem = itemRepository.save(itemEntity);
             ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
