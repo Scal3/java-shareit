@@ -170,7 +170,7 @@ class ItemRequestServiceTest {
                 .thenReturn(List.of(itemRequest));
 
         List<ItemRequestWithItemsDto> itemsDtos =
-                itemRequestService.getAllUsersRequests(user.getId(), 0 , 15);
+                itemRequestService.getAllUsersRequests(user.getId(), 0, 15);
 
         assertEquals(itemRequest.getId(), itemsDtos.get(0).getId());
         assertEquals(itemRequest.getCreated(), itemsDtos.get(0).getCreated());
