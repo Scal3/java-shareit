@@ -15,9 +15,6 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
     @EntityGraph(attributePaths = "items")
     List<ItemRequest> findAllByUserOrderByCreatedDesc(User user);
 
-//    @EntityGraph(attributePaths = "items")
-//    List<ItemRequest> findAllByOrderByCreatedDesc(Pageable pageable);
-
     @EntityGraph(attributePaths = "items")
     List<ItemRequest> findAllByUserIdNotOrderByCreatedDesc(long userId, Pageable pageable);
 }
