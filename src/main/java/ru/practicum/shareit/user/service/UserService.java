@@ -110,10 +110,10 @@ public class UserService {
     public void deleteUser(long id) {
         log.debug("Entering deleteUser method: id = {}", id);
 
-        User user = userRepository.findById(id)
+        userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User with id " + id + " is not found"));
 
-        userRepository.delete(user);
+        userRepository.deleteById(id);
         log.debug("Exiting deleteUser method");
     }
 }
