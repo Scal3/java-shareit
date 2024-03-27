@@ -180,6 +180,20 @@ class UserServiceTest {
     }
 
     @Test
+    void deleteUser_normal_case_then_return_void() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        UserService userService = new UserService(userRepositoryMock, mapper);
+
+        Mockito
+                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(new User()));
+
+        userService.deleteUser(1);
+    }
+
+    @Test
     void deleteUser_user_is_not_found_then_throw_NotFoundException() {
         ShareItConfig mapperConfig = new ShareItConfig();
         ModelMapper mapper = mapperConfig.modelMapper();
