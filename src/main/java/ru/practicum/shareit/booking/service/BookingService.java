@@ -15,7 +15,6 @@ import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.exceptionimp.BadRequestException;
-import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -48,13 +47,11 @@ public class BookingService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found"));
-        log.debug("User was found");
 
         Item item = itemRepository.findById(dto.getItemId())
                 .orElseThrow(() ->
                         new NotFoundException("Item with id " + dto.getItemId() + " is not found")
                 );
-        log.debug("Item was found");
 
         if (item.getOwner().equals(user)) {
             throw new NotFoundException("Owner can't create booking for its own item");
@@ -64,23 +61,17 @@ public class BookingService {
             throw new BadRequestException("Item is unavailable");
         }
 
-        try {
-            Booking booking = modelMapper.map(dto, Booking.class);
-            booking.setUser(user);
-            booking.setItem(item);
-            booking.setStatus(BookingStatus.WAITING);
+        Booking booking = modelMapper.map(dto, Booking.class);
+        booking.setUser(user);
+        booking.setItem(item);
+        booking.setStatus(BookingStatus.WAITING);
 
-            Booking savedBooking = bookingRepository.save(booking);
-            BookingDto bookingDto = modelMapper.map(savedBooking, BookingDto.class);
-            log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
-            log.debug("Exiting createBooking method");
+        Booking savedBooking = bookingRepository.save(booking);
+        BookingDto bookingDto = modelMapper.map(savedBooking, BookingDto.class);
+        log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+        log.debug("Exiting createBooking method");
 
-            return bookingDto;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return bookingDto;
     }
 
     @Transactional
@@ -91,7 +82,6 @@ public class BookingService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() ->
                             new NotFoundException("User with id " + userId + " is not found"));
-            log.debug("User was found");
 
             Booking booking = bookingRepository.findById(bookingId)
                     .orElseThrow(() ->
@@ -110,19 +100,13 @@ public class BookingService {
                     : BookingStatus.REJECTED;
             booking.setStatus(status);
 
-        try {
-            Booking updatedBooking = bookingRepository.save(booking);
-            BookingDto bookingDto = modelMapper.map(updatedBooking, BookingDto.class);
-            log.debug("BookingStatus was changed to {}", status);
-            log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
-            log.debug("Exiting approveBooking method");
+        Booking updatedBooking = bookingRepository.save(booking);
+        BookingDto bookingDto = modelMapper.map(updatedBooking, BookingDto.class);
+        log.debug("BookingStatus was changed to {}", status);
+        log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+        log.debug("Exiting approveBooking method");
 
-            return bookingDto;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return bookingDto;
     }
 
     @Transactional(readOnly = true)
@@ -132,7 +116,6 @@ public class BookingService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new NotFoundException("User with id " + userId + " is not found"));
-        log.debug("User was found");
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
@@ -142,17 +125,11 @@ public class BookingService {
             throw new NotFoundException("Not found");
         }
 
-        try {
-            BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
-            log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
-            log.debug("Exiting getBookingById method");
+        BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
+        log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+        log.debug("Exiting getBookingById method");
 
-            return bookingDto;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return bookingDto;
     }
 
     @Transactional(readOnly = true)
@@ -163,63 +140,61 @@ public class BookingService {
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found"));
-        log.debug("User was found");
+
+        BookingSearchState searchState;
 
         try {
-            Pageable pageable = PageRequest.of(from / size, size);
-            BookingSearchState searchState = BookingSearchState.valueOf(state);
-            List<Booking> bookings;
-
-            switch (searchState) {
-                case PAST:
-                    bookings = bookingRepository
-                        .findAllByUserIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
-                                userId, LocalDateTime.now(), pageable
-                        );
-                    break;
-                case FUTURE:
-                    bookings = bookingRepository
-                        .findAllByUserIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
-                                userId, LocalDateTime.now(), pageable
-                        );
-                    break;
-                case CURRENT:
-                    bookings = bookingRepository
-                        .findAllByUserIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
-                                userId, LocalDateTime.now(), LocalDateTime.now(), pageable
-                        );
-                    break;
-                case WAITING:
-                    bookings = bookingRepository
-                        .findAllByUserIdAndStatusOrderByBookingDateEndDesc(
-                                userId, BookingStatus.WAITING, pageable
-                        );
-                    break;
-                case REJECTED:
-                    bookings = bookingRepository
-                        .findAllByUserIdAndStatusOrderByBookingDateEndDesc(
-                                userId, BookingStatus.REJECTED, pageable
-                        );
-                    break;
-                default:
-                    bookings = bookingRepository.findAllByUserIdOrderByBookingDateEndDesc(userId, pageable);
-            }
-
-            List<BookingDto> bookingDtos = modelMapper
-                    .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
-            log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
-            log.debug("Exiting getAllUserBooking method");
-
-            return bookingDtos;
+            searchState = BookingSearchState.valueOf(state);
         } catch (IllegalArgumentException exc) {
             log.warn("Error has occurred {}", exc.getMessage());
 
             throw new BadRequestException("Unknown state: " + state);
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
         }
+
+        Pageable pageable = PageRequest.of(from / size, size);
+        List<Booking> bookings;
+
+        switch (searchState) {
+            case PAST:
+                bookings = bookingRepository
+                        .findAllByUserIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
+                                userId, LocalDateTime.now(), pageable
+                        );
+                break;
+            case FUTURE:
+                bookings = bookingRepository
+                        .findAllByUserIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
+                                userId, LocalDateTime.now(), pageable
+                        );
+                break;
+            case CURRENT:
+                bookings = bookingRepository
+                        .findAllByUserIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
+                                userId, LocalDateTime.now(), LocalDateTime.now(), pageable
+                        );
+                break;
+            case WAITING:
+                bookings = bookingRepository
+                        .findAllByUserIdAndStatusOrderByBookingDateEndDesc(
+                                userId, BookingStatus.WAITING, pageable
+                        );
+                break;
+            case REJECTED:
+                bookings = bookingRepository
+                        .findAllByUserIdAndStatusOrderByBookingDateEndDesc(
+                                userId, BookingStatus.REJECTED, pageable
+                        );
+                break;
+            default:
+                bookings = bookingRepository.findAllByUserIdOrderByBookingDateEndDesc(userId, pageable);
+        }
+
+        List<BookingDto> bookingDtos = modelMapper
+                .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
+        log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
+        log.debug("Exiting getAllUserBooking method");
+
+        return bookingDtos;
     }
 
     @Transactional(readOnly = true)
@@ -230,62 +205,60 @@ public class BookingService {
 
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User with id " + ownerId + " is not found"));
-        log.debug("User was found");
+
+        BookingSearchState searchState;
 
         try {
-            Pageable pageable = PageRequest.of(from / size, size);
-            BookingSearchState searchState = BookingSearchState.valueOf(state);
-            List<Booking> bookings;
-
-            switch (searchState) {
-                case PAST:
-                    bookings = bookingRepository
-                            .findAllByItemOwnerIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
-                                    ownerId, LocalDateTime.now(), pageable
-                            );
-                    break;
-                case FUTURE:
-                    bookings = bookingRepository
-                            .findAllByItemOwnerIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
-                                    ownerId, LocalDateTime.now(), pageable
-                            );
-                    break;
-                case CURRENT:
-                    bookings = bookingRepository
-                            .findAllByItemOwnerIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
-                                    ownerId, LocalDateTime.now(), LocalDateTime.now(), pageable
-                            );
-                    break;
-                case WAITING:
-                    bookings = bookingRepository
-                            .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
-                                    ownerId, BookingStatus.WAITING, pageable
-                            );
-                    break;
-                case REJECTED:
-                    bookings = bookingRepository
-                            .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
-                                    ownerId, BookingStatus.REJECTED, pageable
-                            );
-                    break;
-                default:
-                    bookings = bookingRepository.findAllByItemOwnerIdOrderByBookingDateEndDesc(ownerId, pageable);
-            }
-
-            List<BookingDto> bookingDtos = modelMapper
-                    .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
-            log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
-            log.debug("Exiting getAllOwnerBooking method");
-
-            return bookingDtos;
+            searchState = BookingSearchState.valueOf(state);
         } catch (IllegalArgumentException exc) {
             log.warn("Error has occurred {}", exc.getMessage());
 
             throw new BadRequestException("Unknown state: " + state);
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
         }
+
+        Pageable pageable = PageRequest.of(from / size, size);
+        List<Booking> bookings;
+
+        switch (searchState) {
+            case PAST:
+                bookings = bookingRepository
+                        .findAllByItemOwnerIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
+                                ownerId, LocalDateTime.now(), pageable
+                        );
+                break;
+            case FUTURE:
+                bookings = bookingRepository
+                        .findAllByItemOwnerIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
+                                ownerId, LocalDateTime.now(), pageable
+                        );
+                break;
+            case CURRENT:
+                bookings = bookingRepository
+                        .findAllByItemOwnerIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
+                                ownerId, LocalDateTime.now(), LocalDateTime.now(), pageable
+                        );
+                break;
+            case WAITING:
+                bookings = bookingRepository
+                        .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
+                                ownerId, BookingStatus.WAITING, pageable
+                        );
+                break;
+            case REJECTED:
+                bookings = bookingRepository
+                        .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
+                                ownerId, BookingStatus.REJECTED, pageable
+                        );
+                break;
+            default:
+                bookings = bookingRepository.findAllByItemOwnerIdOrderByBookingDateEndDesc(ownerId, pageable);
+        }
+
+        List<BookingDto> bookingDtos = modelMapper
+                .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
+        log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
+        log.debug("Exiting getAllOwnerBooking method");
+
+        return bookingDtos;
     }
 }

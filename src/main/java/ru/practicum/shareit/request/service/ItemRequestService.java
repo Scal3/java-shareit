@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -39,24 +38,17 @@ public class ItemRequestService {
 
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("User with id " + userId + " is not found"));
-        log.debug("User was found");
 
-        try {
-            ItemRequest request = modelMapper.map(dto, ItemRequest.class);
-            request.setCreated(LocalDateTime.now());
-            request.setUser(user);
+        ItemRequest request = modelMapper.map(dto, ItemRequest.class);
+        request.setCreated(LocalDateTime.now());
+        request.setUser(user);
 
-            ItemRequest savedRequest = itemRequestRepository.save(request);
-            ItemRequestDto itemRequestDto = modelMapper.map(savedRequest, ItemRequestDto.class);
-            log.debug("Mapping from ItemRequest entity to ItemRequestDto {}", itemRequestDto);
-            log.debug("Exiting createRequest method");
+        ItemRequest savedRequest = itemRequestRepository.save(request);
+        ItemRequestDto itemRequestDto = modelMapper.map(savedRequest, ItemRequestDto.class);
+        log.debug("Mapping from ItemRequest entity to ItemRequestDto {}", itemRequestDto);
+        log.debug("Exiting createRequest method");
 
-            return itemRequestDto;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return itemRequestDto;
     }
 
     @Transactional(readOnly = true)
@@ -66,20 +58,14 @@ public class ItemRequestService {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("User with id " + userId + " is not found"));
 
-        try {
-            List<ItemRequest> itemRequests =
-                    itemRequestRepository.findAllByUserOrderByCreatedDesc(user);
-            List<ItemRequestWithItemsDto> requestDtos =
-                    modelMapper.map(itemRequests, new TypeToken<List<ItemRequestWithItemsDto>>() {}.getType());
-            log.debug("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
-            log.debug("Exiting getUserRequestsById method");
+        List<ItemRequest> itemRequests =
+                itemRequestRepository.findAllByUserOrderByCreatedDesc(user);
+        List<ItemRequestWithItemsDto> requestDtos =
+                modelMapper.map(itemRequests, new TypeToken<List<ItemRequestWithItemsDto>>() {}.getType());
+        log.debug("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
+        log.debug("Exiting getUserRequestsById method");
 
-            return requestDtos;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return requestDtos;
     }
 
     @Transactional(readOnly = true)
@@ -87,21 +73,15 @@ public class ItemRequestService {
         log.debug("Entering getAllUsersRequests method: userId ={}, from = {}, size = {}",
                 userId, from, size);
 
-        try {
-            Pageable pageable = PageRequest.of(from, size);
-            List<ItemRequest> itemRequests =
-                    itemRequestRepository.findAllByUserIdNotOrderByCreatedDesc(userId, pageable);
-            List<ItemRequestWithItemsDto> requestDtos =
-                    modelMapper.map(itemRequests, new TypeToken<List<ItemRequestWithItemsDto>>() {}.getType());
-            log.debug("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
-            log.debug("Exiting getAllUsersRequests method");
+        Pageable pageable = PageRequest.of(from, size);
+        List<ItemRequest> itemRequests =
+                itemRequestRepository.findAllByUserIdNotOrderByCreatedDesc(userId, pageable);
+        List<ItemRequestWithItemsDto> requestDtos =
+                modelMapper.map(itemRequests, new TypeToken<List<ItemRequestWithItemsDto>>() {}.getType());
+        log.debug("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
+        log.debug("Exiting getAllUsersRequests method");
 
-            return requestDtos;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return requestDtos;
     }
 
     @Transactional(readOnly = true)
@@ -116,18 +96,12 @@ public class ItemRequestService {
                 .orElseThrow(
                         () -> new NotFoundException("Request with id " + requestId + " is not found"));
 
-        try {
-            ItemRequestWithItemsDto requestDto =
-                    modelMapper.map(itemRequest, ItemRequestWithItemsDto.class);
-            log.debug("Mapping ItemRequest to ItemRequestWithItemsDto {}", requestDto);
-            log.debug("Exiting getOneRequestById method");
+        ItemRequestWithItemsDto requestDto =
+                modelMapper.map(itemRequest, ItemRequestWithItemsDto.class);
+        log.debug("Mapping ItemRequest to ItemRequestWithItemsDto {}", requestDto);
+        log.debug("Exiting getOneRequestById method");
 
-            return requestDto;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return requestDto;
     }
 }
 
