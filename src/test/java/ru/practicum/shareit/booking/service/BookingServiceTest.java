@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -72,11 +73,11 @@ class BookingServiceTest {
         booking.setBookingDateEnd(dto.getEnd());
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(user));
 
         Mockito
-                .when(itemRepositoryMock.findById(Mockito.anyLong()))
+                .when(itemRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(itemForBooking));
 
         Mockito
@@ -112,7 +113,7 @@ class BookingServiceTest {
         dto.setItemId(1);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> bookingService.createBooking(notFoundUser, dto));
@@ -139,11 +140,11 @@ class BookingServiceTest {
         user.setId(1);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(user));
 
         Mockito
-                .when(itemRepositoryMock.findById(Mockito.anyLong()))
+                .when(itemRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> bookingService.createBooking(1, dto));
@@ -216,11 +217,11 @@ class BookingServiceTest {
         itemForBooking.setAvailable(true);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(user));
 
         Mockito
-                .when(itemRepositoryMock.findById(Mockito.anyLong()))
+                .when(itemRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(itemForBooking));
 
         assertThrows(NotFoundException.class,
@@ -253,11 +254,11 @@ class BookingServiceTest {
         itemForBooking.setAvailable(false);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(user));
 
         Mockito
-                .when(itemRepositoryMock.findById(Mockito.anyLong()))
+                .when(itemRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(itemForBooking));
 
         assertThrows(BadRequestException.class,
@@ -306,7 +307,7 @@ class BookingServiceTest {
         approvedBooking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -370,7 +371,7 @@ class BookingServiceTest {
         rejectedBooking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -405,7 +406,7 @@ class BookingServiceTest {
         );
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
@@ -438,7 +439,7 @@ class BookingServiceTest {
         long notFoundBooking = 1000;
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -483,7 +484,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -528,7 +529,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -573,7 +574,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -622,7 +623,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -674,7 +675,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(randomUser));
 
         Mockito
@@ -716,7 +717,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
@@ -754,7 +755,7 @@ class BookingServiceTest {
         booking.setBookingDateEnd(endTime);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
@@ -766,7 +767,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void getAllUserBooking_normal_case_then_return_list_of_BookingDto() {
+    void getAllUserBooking_ALL_search_state_case_then_return_list_of_BookingDto() {
         ShareItConfig mapperConfig = new ShareItConfig();
         ModelMapper mapper = mapperConfig.modelMapper();
 
@@ -791,17 +792,247 @@ class BookingServiceTest {
         booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(booker));
 
         Mockito
                 .when(bookingRepositoryMock
-                        .findAllByUserIdOrderByBookingDateEndDesc(Mockito.anyLong(), Mockito.any()))
+                        .findAllByUserIdOrderByBookingDateEndDesc(anyLong(), Mockito.any()))
                 .thenReturn(List.of(booking));
 
         List<BookingDto> bookingDtos =
                 bookingService.getAllUserBooking(
                         booker.getId(), BookingSearchState.ALL.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllUserBooking_PAST_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(new User());
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(booker));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByUserIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllUserBooking(
+                        booker.getId(), BookingSearchState.PAST.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllUserBooking_FUTURE_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(new User());
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(booker));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByUserIdAndBookingDateStartAfterOrderByBookingDateEndDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllUserBooking(
+                        booker.getId(), BookingSearchState.FUTURE.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllUserBooking_CURRENT_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(new User());
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(booker));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByUserIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(anyLong(), any(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllUserBooking(
+                        booker.getId(), BookingSearchState.CURRENT.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllUserBooking_WAITING_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(new User());
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(booker));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByUserIdAndStatusOrderByBookingDateEndDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllUserBooking(
+                        booker.getId(), BookingSearchState.WAITING.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllUserBooking_REJECTED_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(new User());
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.REJECTED);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(booker));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByUserIdAndStatusOrderByBookingDateEndDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllUserBooking(
+                        booker.getId(), BookingSearchState.REJECTED.name(), 0, 15);
 
         assertEquals(booking.getId(), bookingDtos.get(0).getId());
         assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
@@ -824,12 +1055,12 @@ class BookingServiceTest {
         booker.setId(1);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(booker));
 
         Mockito
                 .when(bookingRepositoryMock
-                        .findAllByUserIdOrderByBookingDateEndDesc(Mockito.anyLong(), Mockito.any()))
+                        .findAllByUserIdOrderByBookingDateEndDesc(anyLong(), Mockito.any()))
                 .thenReturn(Collections.emptyList());
 
         List<BookingDto> bookingDtos =
@@ -849,7 +1080,7 @@ class BookingServiceTest {
         );
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
@@ -870,7 +1101,7 @@ class BookingServiceTest {
         booker.setId(1);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(booker));
 
         assertThrows(BadRequestException.class,
@@ -879,7 +1110,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void getAllOwnerBooking_normal_case_then_return_list_of_BookingDto() {
+    void getAllOwnerBooking_ALL_search_state_case_then_return_list_of_BookingDto() {
         ShareItConfig mapperConfig = new ShareItConfig();
         ModelMapper mapper = mapperConfig.modelMapper();
 
@@ -907,18 +1138,268 @@ class BookingServiceTest {
         booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
                 .when(bookingRepositoryMock
                         .findAllByItemOwnerIdOrderByBookingDateEndDesc(
-                                Mockito.anyLong(), Mockito.any()))
+                                anyLong(), Mockito.any()))
                 .thenReturn(List.of(booking));
 
         List<BookingDto> bookingDtos =
                 bookingService.getAllOwnerBooking(
                         owner.getId(), BookingSearchState.ALL.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllOwnerBooking_PAST_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User owner = new User();
+        owner.setId(2);
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(owner);
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(owner));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByItemOwnerIdAndBookingDateEndBeforeOrderByBookingDateEndDesc(
+                                anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllOwnerBooking(
+                        owner.getId(), BookingSearchState.PAST.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllOwnerBooking_FUTURE_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User owner = new User();
+        owner.setId(2);
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(owner);
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(owner));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByItemOwnerIdAndBookingDateStartAfterOrderByBookingDateEndDesc(
+                                anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllOwnerBooking(
+                        owner.getId(), BookingSearchState.FUTURE.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllOwnerBooking_CURRENT_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User owner = new User();
+        owner.setId(2);
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(owner);
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(owner));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByItemOwnerIdAndBookingDateStartBeforeAndBookingDateEndAfterOrderByBookingDateEndDesc(
+                                anyLong(), any(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllOwnerBooking(
+                        owner.getId(), BookingSearchState.CURRENT.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllOwnerBooking_WAITING_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User owner = new User();
+        owner.setId(2);
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(owner);
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(owner));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
+                                anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllOwnerBooking(
+                        owner.getId(), BookingSearchState.WAITING.name(), 0, 15);
+
+        assertEquals(booking.getId(), bookingDtos.get(0).getId());
+        assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
+        assertEquals(booking.getItem().getId(), bookingDtos.get(0).getItem().getId());
+        assertEquals(booking.getBookingDateStart(), bookingDtos.get(0).getStart());
+        assertEquals(booking.getBookingDateEnd(), bookingDtos.get(0).getEnd());
+        assertEquals(booking.getStatus(), bookingDtos.get(0).getStatus());
+    }
+
+    @Test
+    void getAllOwnerBooking_REJECTED_search_state_case_then_return_list_of_BookingDto() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        BookingService bookingService = new BookingService(
+                bookingRepositoryMock, userRepositoryMock, itemRepositoryMock, mapper
+        );
+
+        User owner = new User();
+        owner.setId(2);
+
+        User booker = new User();
+        booker.setId(1);
+
+        Item itemForBooking = new Item();
+        itemForBooking.setId(1);
+        itemForBooking.setOwner(owner);
+        itemForBooking.setAvailable(true);
+
+        Booking booking = new Booking();
+        booking.setId(1);
+        booking.setUser(booker);
+        booking.setItem(itemForBooking);
+        booking.setStatus(BookingStatus.REJECTED);
+        booking.setBookingDateStart(LocalDateTime.now().plusDays(1));
+        booking.setBookingDateEnd(LocalDateTime.now().plusDays(2));
+
+        Mockito
+                .when(userRepositoryMock.findById(anyLong()))
+                .thenReturn(Optional.of(owner));
+
+        Mockito
+                .when(bookingRepositoryMock
+                        .findAllByItemOwnerIdAndStatusOrderByBookingDateEndDesc(
+                                anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingDtos =
+                bookingService.getAllOwnerBooking(
+                        owner.getId(), BookingSearchState.REJECTED.name(), 0, 15);
 
         assertEquals(booking.getId(), bookingDtos.get(0).getId());
         assertEquals(booking.getUser().getId(), bookingDtos.get(0).getBooker().getId());
@@ -941,13 +1422,13 @@ class BookingServiceTest {
         owner.setId(2);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         Mockito
                 .when(bookingRepositoryMock
                         .findAllByItemOwnerIdOrderByBookingDateEndDesc(
-                                Mockito.anyLong(), Mockito.any()))
+                                anyLong(), Mockito.any()))
                 .thenReturn(Collections.emptyList());
 
         List<BookingDto> bookingDtos =
@@ -967,7 +1448,7 @@ class BookingServiceTest {
         );
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
@@ -988,7 +1469,7 @@ class BookingServiceTest {
         owner.setId(2);
 
         Mockito
-                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .when(userRepositoryMock.findById(anyLong()))
                 .thenReturn(Optional.of(owner));
 
         assertThrows(BadRequestException.class,

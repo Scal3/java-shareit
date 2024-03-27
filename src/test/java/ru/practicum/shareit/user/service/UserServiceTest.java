@@ -6,7 +6,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
 import ru.practicum.shareit.ShareItConfig;
+import ru.practicum.shareit.exception.exceptionimp.ConflictException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
@@ -118,6 +120,32 @@ class UserServiceTest {
     }
 
     @Test
+    void createUser_email_is_already_exists_then_throw_ConflictException() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        UserService userService = new UserService(userRepositoryMock, mapper);
+
+        CreateUserDto dto = new CreateUserDto();
+        dto.setName("user");
+        dto.setEmail("user@email.com");
+
+        User user = new User();
+        user.setId(1);
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+
+        Mockito
+                .when(userRepositoryMock.save(Mockito.any()))
+                .thenThrow(DataIntegrityViolationException.class);
+
+        assertThrows(ConflictException.class, () -> userService.createUser(dto));
+
+        Mockito.verify(userRepositoryMock, Mockito.times(1))
+                .save(any(User.class));
+    }
+
+    @Test
     void updateUser_normal_case_then_return_UserDto() {
         ShareItConfig mapperConfig = new ShareItConfig();
         ModelMapper mapper = mapperConfig.modelMapper();
@@ -152,6 +180,42 @@ class UserServiceTest {
         assertEquals(user.getId(), userDto.getId());
         assertEquals(user.getName(), userDto.getName());
         assertEquals(user.getEmail(), userDto.getEmail());
+
+        Mockito.verify(userRepositoryMock, Mockito.times(1))
+                .save(any(User.class));
+    }
+
+    @Test
+    void updateUser_email_is_already_exists_then_throw_ConflictException() {
+        ShareItConfig mapperConfig = new ShareItConfig();
+        ModelMapper mapper = mapperConfig.modelMapper();
+
+        UserService userService = new UserService(userRepositoryMock, mapper);
+
+        User user = new User();
+        user.setId(1);
+        user.setName("user");
+        user.setEmail("user@email.com");
+
+        UpdateUserDto dto = new UpdateUserDto();
+        dto.setId(1L);
+        dto.setName("updated user");
+        dto.setEmail("updated@email.com");
+
+        User userUpdated = new User();
+        userUpdated.setId(dto.getId());
+        userUpdated.setName(dto.getName());
+        userUpdated.setEmail(dto.getEmail());
+
+        Mockito
+                .when(userRepositoryMock.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(user));
+
+        Mockito
+                .when(userRepositoryMock.save(Mockito.any()))
+                .thenThrow(DataIntegrityViolationException.class);
+
+        assertThrows(ConflictException.class, () -> userService.updateUser(dto));
 
         Mockito.verify(userRepositoryMock, Mockito.times(1))
                 .save(any(User.class));
