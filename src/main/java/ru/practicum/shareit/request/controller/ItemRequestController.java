@@ -2,7 +2,6 @@ package ru.practicum.shareit.request.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.CreateItemRequestDto;
@@ -23,9 +22,7 @@ public class ItemRequestController {
 
     private final ItemRequestService itemRequestService;
 
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemRequestDto createRequest(
             @RequestHeader("X-Sharer-User-Id") long userId,
@@ -34,7 +31,7 @@ public class ItemRequestController {
         return itemRequestService.createRequest(userId, dto);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ItemRequestWithItemsDto> getUserRequestsById(
             @RequestHeader("X-Sharer-User-Id") long userId
@@ -42,8 +39,7 @@ public class ItemRequestController {
         return itemRequestService.getUserRequestsById(userId);
     }
 
-    @GetMapping(value = "/all",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/all")
     @ResponseStatus(HttpStatus.OK)
     public List<ItemRequestWithItemsDto> getAllUsersRequests(
             @RequestHeader("X-Sharer-User-Id") long userId,
@@ -53,8 +49,7 @@ public class ItemRequestController {
         return itemRequestService.getAllUsersRequests(userId, from, size);
     }
 
-    @GetMapping(value = "/{requestId}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{requestId}")
     @ResponseStatus(HttpStatus.OK)
     public ItemRequestWithItemsDto getOneRequestById(
             @RequestHeader("X-Sharer-User-Id") long userId,

@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -23,9 +22,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping
     public BookingDto createBooking(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @RequestBody @Valid CreateBookingDto dto
