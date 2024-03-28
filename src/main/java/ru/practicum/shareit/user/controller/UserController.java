@@ -2,7 +2,6 @@ package ru.practicum.shareit.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.CreateUserDto;
@@ -22,30 +21,25 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UserDto> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto getOneUserById(@PathVariable @Positive long id) {
         return userService.getOneUserById(id);
     }
 
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid CreateUserDto dto) {
         return userService.createUser(dto);
     }
 
-    @PatchMapping(
-            value = "/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto updateUser(
             @PathVariable @Positive long id,

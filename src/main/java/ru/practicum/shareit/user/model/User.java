@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 
 import javax.persistence.*;
 import java.util.List;
@@ -33,4 +34,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Comment> comments;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<ItemRequest> requests;
 }

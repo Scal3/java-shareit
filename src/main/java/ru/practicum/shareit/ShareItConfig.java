@@ -11,9 +11,12 @@ import ru.practicum.shareit.booking.dto.ShortBookingDto;
 import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CreateItemDto;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -125,6 +128,33 @@ public class ShareItConfig {
         commentCommentDtoTypeMap.addMappings(
                 m -> m.using(userStringConverter)
                         .map(Comment::getUser, CommentDto::setAuthorName)
+        );
+
+        TypeMap<Item, ItemDto> itemItemDtoTypeMap =
+                mapper.createTypeMap(Item.class, ItemDto.class);
+
+        Converter<ItemRequest, Long> requestLongConverter =
+                context -> {
+                    if (context.getSource() == null) return null;
+
+                    return context.getSource().getId();
+                };
+
+        itemItemDtoTypeMap.addMappings(
+                m -> {
+                    m.using(requestLongConverter)
+                            .map(Item::getRequest, ItemDto::setRequestId);
+                    m.map(Item::getId, ItemDto::setId);
+                }
+        );
+
+        TypeMap<CreateItemDto, Item> createItemDtoItemTypeMap =
+                mapper.createTypeMap(CreateItemDto.class, Item.class);
+
+        createItemDtoItemTypeMap.addMappings(
+                m -> {
+                    m.skip(Item::setId);
+                }
         );
 
         return mapper;

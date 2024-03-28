@@ -51,16 +51,6 @@ public class ErrorHandler {
         );
     }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler
-    public ErrorResponse handleError(InternalServerException e) {
-        return new ErrorResponse(
-                e.getCode(),
-                e.getDescription(),
-                LocalDateTime.now()
-        );
-    }
-
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler
     public ErrorResponse handleError(ConflictException e) {

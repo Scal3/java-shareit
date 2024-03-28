@@ -8,7 +8,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.exceptionimp.ConflictException;
-import ru.practicum.shareit.exception.exceptionimp.InternalServerException;
 import ru.practicum.shareit.exception.exceptionimp.NotFoundException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
@@ -30,21 +29,15 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
-        try {
-            log.debug("Entering getAllUsers method");
+        log.debug("Entering getAllUsers method");
 
-            List<User> users = userRepository.findAll();
-            List<UserDto> resultDtos =
-                    modelMapper.map(users, new TypeToken<List<UserDto>>() {}.getType());
-            log.debug("Mapping from List<User> to List<UserDto>: {}", resultDtos);
-            log.debug("Exiting getAllUsers method");
+        List<User> users = userRepository.findAll();
+        List<UserDto> resultDtos =
+                modelMapper.map(users, new TypeToken<List<UserDto>>() {}.getType());
+        log.info("Mapping from List<User> to List<UserDto>: {}", resultDtos);
+        log.debug("Exiting getAllUsers method");
 
-            return resultDtos;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return resultDtos;
     }
 
     @Transactional(readOnly = true)
@@ -53,19 +46,12 @@ public class UserService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User with id " + id + " is not found"));
-        log.debug("User was found");
 
-        try {
-            UserDto userDto = modelMapper.map(user, UserDto.class);
-            log.debug("Mapping from User to UserDto: {}", userDto);
-            log.debug("Exiting getOneUserById method");
+        UserDto userDto = modelMapper.map(user, UserDto.class);
+        log.info("Mapping from User to UserDto: {}", userDto);
+        log.debug("Exiting getOneUserById method");
 
-            return userDto;
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        return userDto;
     }
 
     @Transactional
@@ -74,11 +60,9 @@ public class UserService {
             log.debug("Entering createUser method: CreateUserDto = {}", createUserDto);
 
             User userEntity = modelMapper.map(createUserDto, User.class);
-            log.debug("Mapping from CreateUserDto to User entity {}", userEntity);
-
             User savedUser = userRepository.save(userEntity);
             UserDto userDtoResult = modelMapper.map(savedUser, UserDto.class);
-            log.debug("Mapping from User entity to UserDto {}", userDtoResult);
+            log.info("Mapping from User entity to UserDto {}", userDtoResult);
             log.debug("Exiting createUser method");
 
             return userDtoResult;
@@ -86,10 +70,6 @@ public class UserService {
             log.warn("Error has occurred {}", exc.getMessage());
 
             throw new ConflictException(exc.getMessage());
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
         }
     }
 
@@ -100,23 +80,22 @@ public class UserService {
         User userEntity = userRepository.findById(dto.getId())
                 .orElseThrow(() ->
                             new NotFoundException("User with id " + dto.getId() + " is not found"));
-        log.debug("User was found");
+
+        String newName = dto.getName() != null
+                ? dto.getName()
+                : userEntity.getName();
+
+        String newEmail = dto.getEmail() != null
+                ? dto.getEmail()
+                : userEntity.getEmail();
+
+        userEntity.setName(newName);
+        userEntity.setEmail(newEmail);
 
         try {
-            String newName = dto.getName() != null
-                    ? dto.getName()
-                    : userEntity.getName();
-
-            String newEmail = dto.getEmail() != null
-                    ? dto.getEmail()
-                    : userEntity.getEmail();
-
-            userEntity.setName(newName);
-            userEntity.setEmail(newEmail);
-
             User updatedUser = userRepository.save(userEntity);
             UserDto userDtoResult = modelMapper.map(updatedUser, UserDto.class);
-            log.debug("Mapping from User entity to UserDto {}", userDtoResult);
+            log.info("Mapping from User entity to UserDto {}", userDtoResult);
             log.debug("Exiting updateUser method");
 
             return userDtoResult;
@@ -124,10 +103,6 @@ public class UserService {
             log.warn("Error has occurred {}", exc.getMessage());
 
             throw new ConflictException(exc.getMessage());
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
         }
     }
 
@@ -135,17 +110,10 @@ public class UserService {
     public void deleteUser(long id) {
         log.debug("Entering deleteUser method: id = {}", id);
 
-        User user = userRepository.findById(id)
+        userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User with id " + id + " is not found"));
-        log.debug("User was found");
 
-        try {
-            userRepository.delete(user);
-            log.debug("Exiting deleteUser method");
-        } catch (Exception exc) {
-            log.error("An unexpected exception has occurred " + exc);
-
-            throw new InternalServerException("Something went wrong");
-        }
+        userRepository.deleteById(id);
+        log.debug("Exiting deleteUser method");
     }
 }
