@@ -34,7 +34,7 @@ public class UserService {
         List<User> users = userRepository.findAll();
         List<UserDto> resultDtos =
                 modelMapper.map(users, new TypeToken<List<UserDto>>() {}.getType());
-        log.debug("Mapping from List<User> to List<UserDto>: {}", resultDtos);
+        log.info("Mapping from List<User> to List<UserDto>: {}", resultDtos);
         log.debug("Exiting getAllUsers method");
 
         return resultDtos;
@@ -48,7 +48,7 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User with id " + id + " is not found"));
 
         UserDto userDto = modelMapper.map(user, UserDto.class);
-        log.debug("Mapping from User to UserDto: {}", userDto);
+        log.info("Mapping from User to UserDto: {}", userDto);
         log.debug("Exiting getOneUserById method");
 
         return userDto;
@@ -62,7 +62,7 @@ public class UserService {
             User userEntity = modelMapper.map(createUserDto, User.class);
             User savedUser = userRepository.save(userEntity);
             UserDto userDtoResult = modelMapper.map(savedUser, UserDto.class);
-            log.debug("Mapping from User entity to UserDto {}", userDtoResult);
+            log.info("Mapping from User entity to UserDto {}", userDtoResult);
             log.debug("Exiting createUser method");
 
             return userDtoResult;
@@ -95,7 +95,7 @@ public class UserService {
         try {
             User updatedUser = userRepository.save(userEntity);
             UserDto userDtoResult = modelMapper.map(updatedUser, UserDto.class);
-            log.debug("Mapping from User entity to UserDto {}", userDtoResult);
+            log.info("Mapping from User entity to UserDto {}", userDtoResult);
             log.debug("Exiting updateUser method");
 
             return userDtoResult;

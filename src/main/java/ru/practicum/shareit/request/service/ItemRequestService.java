@@ -45,7 +45,7 @@ public class ItemRequestService {
 
         ItemRequest savedRequest = itemRequestRepository.save(request);
         ItemRequestDto itemRequestDto = modelMapper.map(savedRequest, ItemRequestDto.class);
-        log.debug("Mapping from ItemRequest entity to ItemRequestDto {}", itemRequestDto);
+        log.info("Mapping from ItemRequest entity to ItemRequestDto {}", itemRequestDto);
         log.debug("Exiting createRequest method");
 
         return itemRequestDto;
@@ -62,7 +62,7 @@ public class ItemRequestService {
                 itemRequestRepository.findAllByUserOrderByCreatedDesc(user);
         List<ItemRequestWithItemsDto> requestDtos =
                 modelMapper.map(itemRequests, new TypeToken<List<ItemRequestWithItemsDto>>() {}.getType());
-        log.debug("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
+        log.info("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
         log.debug("Exiting getUserRequestsById method");
 
         return requestDtos;
@@ -78,7 +78,7 @@ public class ItemRequestService {
                 itemRequestRepository.findAllByUserIdNotOrderByCreatedDesc(userId, pageable);
         List<ItemRequestWithItemsDto> requestDtos =
                 modelMapper.map(itemRequests, new TypeToken<List<ItemRequestWithItemsDto>>() {}.getType());
-        log.debug("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
+        log.info("Mapping from List<ItemRequest> to List<ItemRequestWithItemsDto> {}", requestDtos);
         log.debug("Exiting getAllUsersRequests method");
 
         return requestDtos;
@@ -98,7 +98,7 @@ public class ItemRequestService {
 
         ItemRequestWithItemsDto requestDto =
                 modelMapper.map(itemRequest, ItemRequestWithItemsDto.class);
-        log.debug("Mapping ItemRequest to ItemRequestWithItemsDto {}", requestDto);
+        log.info("Mapping ItemRequest to ItemRequestWithItemsDto {}", requestDto);
         log.debug("Exiting getOneRequestById method");
 
         return requestDto;

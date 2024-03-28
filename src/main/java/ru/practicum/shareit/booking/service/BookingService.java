@@ -68,7 +68,7 @@ public class BookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
         BookingDto bookingDto = modelMapper.map(savedBooking, BookingDto.class);
-        log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+        log.info("Mapping from Booking to BookingDto: {}", bookingDto);
         log.debug("Exiting createBooking method");
 
         return bookingDto;
@@ -102,8 +102,8 @@ public class BookingService {
 
         Booking updatedBooking = bookingRepository.save(booking);
         BookingDto bookingDto = modelMapper.map(updatedBooking, BookingDto.class);
-        log.debug("BookingStatus was changed to {}", status);
-        log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+        log.info("BookingStatus was changed to {}", status);
+        log.info("Mapping from Booking to BookingDto: {}", bookingDto);
         log.debug("Exiting approveBooking method");
 
         return bookingDto;
@@ -126,7 +126,7 @@ public class BookingService {
         }
 
         BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
-        log.debug("Mapping from Booking to BookingDto: {}", bookingDto);
+        log.info("Mapping from Booking to BookingDto: {}", bookingDto);
         log.debug("Exiting getBookingById method");
 
         return bookingDto;
@@ -191,7 +191,7 @@ public class BookingService {
 
         List<BookingDto> bookingDtos = modelMapper
                 .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
-        log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
+        log.info("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
         log.debug("Exiting getAllUserBooking method");
 
         return bookingDtos;
@@ -256,7 +256,7 @@ public class BookingService {
 
         List<BookingDto> bookingDtos = modelMapper
                 .map(bookings, new TypeToken<List<BookingDto>>() {}.getType());
-        log.debug("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
+        log.info("Mapping from List<Booking> to List<BookingDto>: {}", bookingDtos);
         log.debug("Exiting getAllOwnerBooking method");
 
         return bookingDtos;

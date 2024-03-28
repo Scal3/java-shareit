@@ -65,7 +65,7 @@ public class ItemService {
 
         Item savedItem = itemRepository.save(itemEntity);
         ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
-        log.debug("Mapping from Item entity to ItemDto {}", itemDtoResult);
+        log.info("Mapping from Item entity to ItemDto {}", itemDtoResult);
         log.debug("Exiting createItem method");
 
         return itemDtoResult;
@@ -101,7 +101,7 @@ public class ItemService {
 
         Item savedItem = itemRepository.save(itemEntityForUpdate);
         ItemDto itemDtoResult = modelMapper.map(savedItem, ItemDto.class);
-        log.debug("Mapping from Item entity to ItemDto {}", itemDtoResult);
+        log.info("Mapping from Item entity to ItemDto {}", itemDtoResult);
         log.debug("Exiting updateItem method");
 
         return itemDtoResult;
@@ -122,7 +122,7 @@ public class ItemService {
             itemDto.setNextBooking(null);
         }
 
-        log.debug("Mapping from Item to ItemDtoWithBooking: {}", itemDto);
+        log.info("Mapping from Item to ItemDtoWithBooking: {}", itemDto);
         log.debug("Exiting getOneItemById method");
 
         return itemDto;
@@ -139,7 +139,7 @@ public class ItemService {
 
         List<ItemDtoWithBooking> resultDtos = modelMapper
                 .map(items, new TypeToken<List<ItemDtoWithBooking>>() {}.getType());
-        log.debug("Mapping from List<Item> to List<ItemDtoWithBooking> {}", resultDtos);
+        log.info("Mapping from List<Item> to List<ItemDtoWithBooking> {}", resultDtos);
         log.debug("Exiting getOwnersItems method");
 
         return resultDtos;
@@ -157,7 +157,7 @@ public class ItemService {
         List<Item> items = itemRepository.findByAvailableAndKeyword(searchString, pageable);
         List<ItemDto> resultDtos =
                 modelMapper.map(items, new TypeToken<List<ItemDto>>() {}.getType());
-        log.debug("Mapping from List<Item> to List<ItemDto> {}", resultDtos);
+        log.info("Mapping from List<Item> to List<ItemDto> {}", resultDtos);
         log.debug("Exiting getAvailableItemsBySearchString method");
 
         return resultDtos;
@@ -193,7 +193,7 @@ public class ItemService {
 
         Comment savedComment = commentRepository.save(comment);
         CommentDto resultDto = modelMapper.map(savedComment, CommentDto.class);
-        log.debug("Mapping from Comment to CommentDto: {}", resultDto);
+        log.info("Mapping from Comment to CommentDto: {}", resultDto);
         log.debug("Exiting createComment method");
 
         return resultDto;
