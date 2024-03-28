@@ -73,7 +73,7 @@ public class ItemRequestService {
         log.debug("Entering getAllUsersRequests method: userId ={}, from = {}, size = {}",
                 userId, from, size);
 
-        Pageable pageable = PageRequest.of(from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
         List<ItemRequest> itemRequests =
                 itemRequestRepository.findAllByUserIdNotOrderByCreatedDesc(userId, pageable);
         List<ItemRequestWithItemsDto> requestDtos =
